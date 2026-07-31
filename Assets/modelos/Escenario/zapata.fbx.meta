@@ -3,7 +3,37 @@ guid: 4935b1a368dd36f439adf7da0ed84497
 ModelImporter:
   serializedVersion: 24501
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: BaseMetal
+    second: {fileID: 2100000, guid: 8a270bdeb9269c64ea1d367f7240b97f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: BaseMetal.001
+    second: {fileID: 2100000, guid: 8a270bdeb9269c64ea1d367f7240b97f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Luz
+    second: {fileID: 2100000, guid: 9fe87be0774e18b47986c787c6b8b239, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Luz.001
+    second: {fileID: 2100000, guid: 9fe87be0774e18b47986c787c6b8b239, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Tubo
+    second: {fileID: 2100000, guid: 3fec8496ba02ae246bc353405f949b81, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Tubo.001
+    second: {fileID: 2100000, guid: 3fec8496ba02ae246bc353405f949b81, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
