@@ -7,23 +7,8 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: BaseMetal
-    second: {fileID: 2100000, guid: 8a270bdeb9269c64ea1d367f7240b97f, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: BaseMetal.001
-    second: {fileID: 2100000, guid: 8a270bdeb9269c64ea1d367f7240b97f, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Luz
-    second: {fileID: 2100000, guid: 9fe87be0774e18b47986c787c6b8b239, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Luz.001
-    second: {fileID: 2100000, guid: 9fe87be0774e18b47986c787c6b8b239, type: 2}
+      name: ConcretoMuro
+    second: {fileID: 2100000, guid: 710c0819ae1272145b3ff0ac0e017283, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
@@ -34,6 +19,11 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: Tubo.001
     second: {fileID: 2100000, guid: 3fec8496ba02ae246bc353405f949b81, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: tubos
+    second: {fileID: 2100000, guid: d1ead0fa2bfd05649b43403e8b2f76d6, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
