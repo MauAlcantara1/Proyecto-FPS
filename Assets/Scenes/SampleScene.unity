@@ -1480,7 +1480,7 @@ Light:
   m_GameObject: {fileID: 722320413}
   m_Enabled: 1
   serializedVersion: 13
-  m_Type: 3
+  m_Type: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 100
   m_Range: 6.84
@@ -3580,6 +3580,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 2147483647
       objectReference: {fileID: 0}
+    - target: {fileID: -8335245077362730543, guid: 4935b1a368dd36f439adf7da0ed84497, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     - target: {fileID: -8084268279021867479, guid: 4935b1a368dd36f439adf7da0ed84497, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -3760,6 +3764,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 2147483647
       objectReference: {fileID: 0}
+    - target: {fileID: -3381140908762085349, guid: 4935b1a368dd36f439adf7da0ed84497, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     - target: {fileID: -3309464841899947447, guid: 4935b1a368dd36f439adf7da0ed84497, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -3932,6 +3940,10 @@ PrefabInstance:
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: -876546973899608171, guid: e7994d1e7824cbe4498a369dd228163f, type: 3}
+    - target: {fileID: 259495544594275463, guid: 4935b1a368dd36f439adf7da0ed84497, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
     - target: {fileID: 288069872038005570, guid: 4935b1a368dd36f439adf7da0ed84497, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -4016,6 +4028,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 2147483647
       objectReference: {fileID: 0}
+    - target: {fileID: 2928294410990902764, guid: 4935b1a368dd36f439adf7da0ed84497, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 81dfed10f784020448479b379f1a492f, type: 2}
     - target: {fileID: 2957678079576303077, guid: 4935b1a368dd36f439adf7da0ed84497, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
@@ -4149,6 +4165,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: -876546973899608171, guid: e7994d1e7824cbe4498a369dd228163f, type: 3}
     - target: {fileID: 5222063489633996282, guid: 4935b1a368dd36f439adf7da0ed84497, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    - target: {fileID: 5243574543108001894, guid: 4935b1a368dd36f439adf7da0ed84497, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
       objectReference: {fileID: 0}
@@ -4996,7 +5016,7 @@ Light:
   m_Type: 3
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 100
-  m_Range: 6.84
+  m_Range: 7.96
   m_SpotAngle: 179
   m_InnerSpotAngle: 116.31078
   m_CookieSize2D: {x: 0.5, y: 0.5}

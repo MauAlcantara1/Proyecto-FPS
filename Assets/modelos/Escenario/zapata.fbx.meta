@@ -12,16 +12,6 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: Tubo
-    second: {fileID: 2100000, guid: 3fec8496ba02ae246bc353405f949b81, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Tubo.001
-    second: {fileID: 2100000, guid: 3fec8496ba02ae246bc353405f949b81, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
       name: tubos
     second: {fileID: 2100000, guid: d1ead0fa2bfd05649b43403e8b2f76d6, type: 2}
   materials:
