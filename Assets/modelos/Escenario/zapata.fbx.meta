@@ -92,16 +92,6 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: Material
-    second: {fileID: 2100000, guid: 9fe87be0774e18b47986c787c6b8b239, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Material.001
-    second: {fileID: 2100000, guid: 9fe87be0774e18b47986c787c6b8b239, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
       name: Pilar.001
     second: {fileID: -876546973899608171, guid: e7994d1e7824cbe4498a369dd228163f, type: 3}
   - first:
@@ -114,11 +104,6 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: Pilar.003
     second: {fileID: -876546973899608171, guid: e7994d1e7824cbe4498a369dd228163f, type: 3}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: PisoAbajo
-    second: {fileID: 2100000, guid: a346a4d1b1fe11248ba848a683cb7faa, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
