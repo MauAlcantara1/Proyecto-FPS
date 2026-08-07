@@ -8,5 +8,20 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/SampleScene.unity
     guid: 99c9720ab356a0642a771bea13969a05
+  - enabled: 1
+    path: Assets/Scenes/Menu.unity
+    guid: 342cfbfd114b9924aa7a3abee4cd4451
+  - enabled: 1
+    path: Assets/Scenes/Creditos.unity
+    guid: b270704ae76b62c47818a18da30d1975
+  - enabled: 1
+    path: Assets/Scenes/Configuracion.unity
+    guid: 433a627e722691d4d9fe658b46cd9a32
+  - enabled: 1
+    path: Assets/Scenes/JuegoCoop.unity
+    guid: 8ff6c5748c77cf04a9d760dff85683c9
+  - enabled: 1
+    path: Assets/Scenes/JuegoSolitario.unity
+    guid: b601e7a7dac44e34a9e7e1eb9f0ff4a1
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
