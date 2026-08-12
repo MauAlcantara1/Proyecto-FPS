@@ -107,3 +107,10 @@ InitTestScene*.unity*
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
 # Unity Lighting Data (generado localmente)
 [Ll]ightingData.asset
+# Ignorar carpetas de Lightmaps generados por escenas
+/[Aa]ssets/**/[Ll]ightmap-*
+/[Aa]ssets/**/*-[Ll]ightmap-*
+
+# O directamente ignorar todas las carpetas que coincidan con datos de iluminación
+/[Aa]ssets/**/LightingData.asset
+/[Aa]ssets/**/LightingData.asset.meta
