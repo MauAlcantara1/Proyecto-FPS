@@ -114,3 +114,7 @@ InitTestScene*.unity*
 # O directamente ignorar todas las carpetas que coincidan con datos de iluminación
 /[Aa]ssets/**/LightingData.asset
 /[Aa]ssets/**/LightingData.asset.meta
+
+# Unity generated lighting data
+**/LightingData.asset
+**/LightingData.asset.meta
