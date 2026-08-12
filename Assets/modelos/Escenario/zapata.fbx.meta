@@ -52,58 +52,48 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: Flecha
+    second: {fileID: 2100000, guid: 58f8df7484cc9344e96755405bdfc50c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Flecha.001
+    second: {fileID: 2100000, guid: 58f8df7484cc9344e96755405bdfc50c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: FlechaNegra
+    second: {fileID: 2100000, guid: 6d07acf2388e9274dbc5b427f776a935, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Logo
+    second: {fileID: 2100000, guid: 264b41b8dbeeef14bbd7efaf2a56be9c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: LogoMetro
+    second: {fileID: 2100000, guid: 22d2bde37b01b35489541f42db236130, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: Luz
     second: {fileID: 2100000, guid: 9fe87be0774e18b47986c787c6b8b239, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: Luz.001
-    second: {fileID: 2100000, guid: 9fe87be0774e18b47986c787c6b8b239, type: 2}
+      name: Persona
+    second: {fileID: 2100000, guid: ee7b551727fb91644be7d788a7756939, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: Luz.002
-    second: {fileID: 2100000, guid: 9fe87be0774e18b47986c787c6b8b239, type: 2}
+      name: Texto
+    second: {fileID: 2100000, guid: cdf231484c82c754e9d5d59a44585654, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: Luz.003
-    second: {fileID: 2100000, guid: 9fe87be0774e18b47986c787c6b8b239, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Luz.004
-    second: {fileID: 2100000, guid: 9fe87be0774e18b47986c787c6b8b239, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Luz.005
-    second: {fileID: 2100000, guid: 9fe87be0774e18b47986c787c6b8b239, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Luz.006
-    second: {fileID: 2100000, guid: 9fe87be0774e18b47986c787c6b8b239, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Luz.007
-    second: {fileID: 2100000, guid: 9fe87be0774e18b47986c787c6b8b239, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Pilar.001
-    second: {fileID: -876546973899608171, guid: e7994d1e7824cbe4498a369dd228163f, type: 3}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Pilar.002
-    second: {fileID: -876546973899608171, guid: e7994d1e7824cbe4498a369dd228163f, type: 3}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Pilar.003
-    second: {fileID: -876546973899608171, guid: e7994d1e7824cbe4498a369dd228163f, type: 3}
+      name: Texto.001
+    second: {fileID: 2100000, guid: cdf231484c82c754e9d5d59a44585654, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
@@ -147,7 +137,32 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: "fondoSe\xF1al"
+    second: {fileID: 2100000, guid: ffff4020948e3a54185b1ba5f3361596, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "fondoSe\xF1al.001"
+    second: {fileID: 2100000, guid: ffff4020948e3a54185b1ba5f3361596, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "marcoSe\xF1al"
+    second: {fileID: 2100000, guid: eec4ee7870c1cb74da6f1fe7e901eece, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "marcoSe\xF1al.001"
+    second: {fileID: 2100000, guid: eec4ee7870c1cb74da6f1fe7e901eece, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: tubos
+    second: {fileID: 2100000, guid: d1ead0fa2bfd05649b43403e8b2f76d6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: tubos.004
     second: {fileID: 2100000, guid: d1ead0fa2bfd05649b43403e8b2f76d6, type: 2}
   materials:
     materialImportMode: 2

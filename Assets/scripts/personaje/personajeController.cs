@@ -8,6 +8,11 @@ public class personajeController : MonoBehaviour
     [SerializeField] private float velocidadCorrer = 7f;
     [SerializeField] private float fuerzaSalto = 3f;
     [SerializeField] private float gravedad = -9.81f;
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] public AudioClip pasosCaminar;
+    [SerializeField] public AudioClip pasosCorrer;
+    [SerializeField] public Animator animator;
+
 
 
     private CharacterController controller;
@@ -29,10 +34,11 @@ public class personajeController : MonoBehaviour
     {
         MoverJugador();
         AplicarGravedad();
+        SonidosPasos();
+
     }
 
 
-    // Recibe Move desde Input System
     public void Movimiento(InputAction.CallbackContext context)
     {
         movimientoInput = context.ReadValue<Vector2>();
@@ -41,7 +47,9 @@ public class personajeController : MonoBehaviour
     }
 
 
-    // Recibe Jump
+
+
+    
     public void Salto(InputAction.CallbackContext context)
     {
         if(context.performed)
@@ -50,8 +58,6 @@ public class personajeController : MonoBehaviour
         }
     }
 
-
-    // Recibe Sprint
     public void Correr(InputAction.CallbackContext context)
     {
         correr = context.ReadValueAsButton();
@@ -101,5 +107,32 @@ public class personajeController : MonoBehaviour
         controller.Move(
             velocidadVertical * Time.deltaTime
         );
+    }
+
+    private void SonidosPasos()
+    {
+        if (!controller.isGrounded || movimientoInput.magnitude < 0.1f)
+        {
+            if (audioSource.isPlaying)
+            {
+                audioSource.Stop();
+            }
+
+            return;
+        }
+
+        AudioClip clipActual = correr
+            ? pasosCorrer
+            : pasosCaminar;
+
+        if (audioSource.clip != clipActual)
+        {
+            audioSource.clip = clipActual;
+            audioSource.Play();
+        }
+        else if (!audioSource.isPlaying)
+        {
+            audioSource.Play();
+        }
     }
 }
