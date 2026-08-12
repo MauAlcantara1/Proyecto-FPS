@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<< Updated upstream:Assets/modelos/armas/fx-05-xiuhcoat-assault-rifle/textures/fusil.mat.meta
 guid: 834e6bf6fbb7caa4898825004a7b9a93
+=======
+guid: 44be5ccc7e8c8464eaa1188fff5ecf3a
+>>>>>>> Stashed changes:Assets/Scenes/SampleScene/LightingData.asset.meta
 NativeFormatImporter:
   externalObjects: {}
   mainObjectFileID: 2100000
