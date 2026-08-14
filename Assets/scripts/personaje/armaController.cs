@@ -5,6 +5,7 @@ public class armaController : MonoBehaviour
 {
     private Animator animatorActual;
     private CharacterController controller;
+    private MunicionArma municionActual;
 
     public enum TipoArma
     {
@@ -72,6 +73,23 @@ public class armaController : MonoBehaviour
         {
             animatorActual = segundaArma.GetComponent<Animator>();
         }
+
+        ActualizarMunicion();
+    }
+
+    private void ActualizarMunicion()
+    {
+        if (primariaActiva)
+        {
+            GameObject armaActual = ObtenerArmaPrimaria();
+
+            if (armaActual != null)
+                municionActual = armaActual.GetComponent<MunicionArma>();
+        }
+        else
+        {
+            municionActual = segundaArma.GetComponent<MunicionArma>();
+        }
     }
 
     private Animator ObtenerAnimatorArmaPrimaria()
@@ -92,6 +110,24 @@ public class armaController : MonoBehaviour
         }
     }
 
+    private GameObject ObtenerArmaPrimaria()
+    {
+        switch (armaActiva)
+        {
+            case TipoArma.pistola:
+                return pistola;
+
+            case TipoArma.fusil:
+                return fusil;
+
+            case TipoArma.uzi:
+                return uzi;
+
+            default:
+                return null;
+        }
+    }
+
     public void Cambio(InputAction.CallbackContext context)
     {
         if(context.performed)
@@ -102,18 +138,38 @@ public class armaController : MonoBehaviour
 
     public void Recarga(InputAction.CallbackContext context)
     {
-        if(context.performed)
-        {
-            animatorActual.SetTrigger("Recarga");
-        }
+        if (!context.performed)
+            return;
+
+        if (municionActual == null)
+            return;
+
+        if (!municionActual.PuedeRecargar())
+            return;
+
+        municionActual.IniciarRecarga();
+
+        animatorActual.SetTrigger("Recarga");
     }
 
     public void Disparo(InputAction.CallbackContext context)
     {
-        if(context.performed)
+        if (!context.performed)
+            return;
+
+        if (!primariaActiva)
         {
             animatorActual.SetTrigger("Disparo");
+            return;
         }
+
+        if (municionActual == null)
+            return;
+
+        if (!municionActual.PuedeDisparar())
+            return;
+
+        animatorActual.SetTrigger("Disparo");
     }
 
     public void CambiarArma()

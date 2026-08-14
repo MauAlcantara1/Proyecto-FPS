@@ -43,7 +43,6 @@ public class personajeController : MonoBehaviour
     {
         movimientoInput = context.ReadValue<Vector2>();
 
-        Debug.Log(movimientoInput);
     }
 
 
