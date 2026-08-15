@@ -12,6 +12,7 @@ public class personajeController : MonoBehaviour
     [SerializeField] public AudioClip pasosCaminar;
     [SerializeField] public AudioClip pasosCorrer;
     [SerializeField] public Animator animator;
+    [SerializeField] private GameObject linterna;
 
 
 
@@ -27,6 +28,10 @@ public class personajeController : MonoBehaviour
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
+        #if UNITY_EDITOR
+            Application.targetFrameRate = 60;
+            QualitySettings.vSyncCount = 0;
+        #endif
     }
 
 
@@ -46,8 +51,13 @@ public class personajeController : MonoBehaviour
     }
 
 
-
-
+    public void Linterna(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            linterna.SetActive(!linterna.activeSelf);
+        }
+    }
     
     public void Salto(InputAction.CallbackContext context)
     {

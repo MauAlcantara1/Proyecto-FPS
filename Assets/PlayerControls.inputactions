@@ -68,6 +68,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "ApagarLinterna",
+                    "type": "Button",
+                    "id": "9233afe6-2a05-465c-aa22-aaac370f75e8",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -266,6 +275,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "Cambio",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "4326d7b8-ab39-43ce-bbf9-4504da16b624",
+                    "path": "<Keyboard>/f",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ApagarLinterna",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

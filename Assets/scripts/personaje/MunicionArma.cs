@@ -85,7 +85,6 @@ public class MunicionArma : MonoBehaviour
 
     public void Recargar()
     {
-        Debug.Log("¡¡¡ANIMATION EVENT DE RECARGA EJECUTADO!!!");
 
         int balasNecesarias = capacidadCargador - cargadorActual;
 
