@@ -5,12 +5,26 @@ using UnityEngine.AI;
 public class EnemigoRango : MonoBehaviour
 {
     public NavMeshAgent enemigo;
+    private Transform objetivo; 
+
     public float velocidad;
-    public bool perseguir;
     public float rango;
     float distancia;
+    private HordaManager hordaManager;
 
-    public Transform objetivo; 
+
+
+    private void Start()
+    {
+        GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
+
+        if (playerObject != null)
+        {
+            objetivo = playerObject.transform;
+        }
+
+        hordaManager = FindFirstObjectByType<HordaManager>();
+    }
 
     private void Update()
     {
@@ -18,21 +32,38 @@ public class EnemigoRango : MonoBehaviour
 
         if(distancia < rango)
         {
-            perseguir = true;
-        }else if(distancia > rango + 3)
+            Perseguir();
+        }
+        else if(distancia > rango + 3)
         {
-            perseguir = false;
+            PararPerseguir();
         }
 
-        if(perseguir == false)
+    }
+
+    private void Perseguir()
+    {
+         if (enemigo.isOnNavMesh)
         {
-            enemigo.speed = 0;
-        }else if (perseguir == true)
-        {
-            enemigo.speed=velocidad;
             enemigo.SetDestination(objetivo.position);
         }
+    }
 
+    private void PararPerseguir()
+    {
+        if (enemigo.isOnNavMesh)
+        {
+            enemigo.ResetPath();
+        }
+    }
+
+    public void Muere()
+    {
+        if(hordaManager != null)
+        {
+            hordaManager.EnemyDied(gameObject);
+        }
+        Destroy(gameObject);
     }
 
     private void OnDrawGizmos()
