@@ -13,7 +13,8 @@ public class personajeController : MonoBehaviour
     [SerializeField] public AudioClip pasosCorrer;
     [SerializeField] public Animator animator;
     [SerializeField] private GameObject linterna;
-
+    
+    [SerializeField] private personajeVida saludJugador;   // <-- agregar esto
 
 
     private CharacterController controller;
@@ -37,6 +38,13 @@ public class personajeController : MonoBehaviour
 
     private void Update()
     {
+        if (saludJugador != null && saludJugador.EstaCurandose())
+        {
+            if (movimientoInput.magnitude > 0.1f || saltar)
+            {
+                saludJugador.CancelarCuracion();
+            }
+        }
         MoverJugador();
         AplicarGravedad();
         SonidosPasos();
@@ -142,6 +150,22 @@ public class personajeController : MonoBehaviour
         else if (!audioSource.isPlaying)
         {
             audioSource.Play();
+        }
+    }
+
+    public void Curar(InputAction.CallbackContext context)
+    {
+        if (saludJugador == null) return;
+
+        // Al PRESIONAR la tecla -> Inicia la curación
+        if (context.performed)
+        {
+            saludJugador.IniciarCuracion();
+        }
+        // Al SOLTAR la tecla -> Cancela la curación
+        else if (context.canceled)
+        {
+            saludJugador.CancelarCuracion();
         }
     }
 }

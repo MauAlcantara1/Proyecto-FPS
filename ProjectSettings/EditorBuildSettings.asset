@@ -24,4 +24,5 @@ EditorBuildSettings:
     path: Assets/Scenes/JuegoSolitario.unity
     guid: b601e7a7dac44e34a9e7e1eb9f0ff4a1
   m_configObjects:
+    com.unity.input.settings: {fileID: 11400000, guid: 9e7be553448fa2546aea5752021cbcf7, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
