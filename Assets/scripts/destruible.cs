@@ -34,6 +34,8 @@ public class Destruible : MonoBehaviour
             rb.AddExplosionForce(fuerzaExplosion, transform.position, radioExplosion);
         }
 
+        Destroy(brokenInstance, 10f);
+
         Destroy(gameObject);
     }
 
