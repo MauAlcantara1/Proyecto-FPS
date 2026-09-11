@@ -3,7 +3,112 @@ guid: 092828f908e1a3e4aa067950f11353b7
 ModelImporter:
   serializedVersion: 24501
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat
+    second: {fileID: 2100000, guid: 00edf98fc74a1ad459bc45d2e0b29b2e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Mat.1
+    second: {fileID: 2100000, guid: f1a2b71d488ce994db80ef3e946688bb, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: arms
+    second: {fileID: 2100000, guid: 3f3c56edf54315240854cb4575c8d92a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: cloth
+    second: {fileID: 2100000, guid: ce0120a4c9db87c4bade2fc0778cde84, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: feet
+    second: {fileID: 2100000, guid: e5d33e4a5c7be274eaaf4734749eb0ba, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: legs
+    second: {fileID: 2100000, guid: 63bb2573dfa2e9341b45ae8088fe76bd, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: pans
+    second: {fileID: 2100000, guid: 5835949b290daf0419bdc395129f6dd9, type: 2}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: 4e5fd66d
+    second: {fileID: 2800000, guid: 127c3d71753b4764fafd56a664aadfbb, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: arms
+    second: {fileID: 2800000, guid: 00c9eda879501654da1c5503a5f3b537, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: cloth1
+    second: {fileID: 2800000, guid: f5e2aa90204773a42a19a1fb71103ab8, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: cloth1bump
+    second: {fileID: 2800000, guid: 42f4795296a64704eb2e0999980ef21f, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: cloth2
+    second: {fileID: 2800000, guid: 3081887255701d149a1196cf77c22b55, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: cloth2bump
+    second: {fileID: 2800000, guid: b3b20ee9b7fa3814bbcab2b166f39be1, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: cloth3
+    second: {fileID: 2800000, guid: 5cda0d393185e8b4bade1afafe1768d3, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: cloth3b
+    second: {fileID: 2800000, guid: b401ddc7d057d8046859f2bdda542ab0, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: feet
+    second: {fileID: 2800000, guid: 6279f6e140668374c9013cabd4ed9f5c, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: hand
+    second: {fileID: 2800000, guid: e696ad0c66a4d59468e797c27fcc6ffb, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: legs
+    second: {fileID: 2800000, guid: 8459a8d1ccb510840aa63e38869d4d36, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: pans
+    second: {fileID: 2800000, guid: 89b425f3758817141aa6555fb4ca4100, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: tile
+    second: {fileID: 2800000, guid: bde3aa53bb3e413409d6ed5d867926f0, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: tilebump
+    second: {fileID: 2800000, guid: 53675b5034dd62140b05e00d5ec974cc, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0
