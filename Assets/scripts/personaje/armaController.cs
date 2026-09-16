@@ -30,11 +30,28 @@ public class armaController : MonoBehaviour
 
 
     [SerializeField] private bool primariaActiva = true;
+    private bool disparando = false;
+
 
     private void Start()
     {
         ActualizarArmaVisible();
         ActualizarAnimator();
+    }
+
+    void Update()
+    {
+        if (!disparando)
+            return;
+
+        if (municionActual == null || !municionActual.PuedeDisparar())
+        {
+            animatorActual.SetBool("Disparo", false);
+            disparando = false; // opcional: evita seguir chequeando hasta que vuelvas a presionar
+            return;
+        }
+
+        animatorActual.SetBool("Disparo", true);
     }
 
     private void Awake()
@@ -133,6 +150,7 @@ public class armaController : MonoBehaviour
         if(context.performed)
         {
             animatorActual.SetTrigger("Cambio");
+            Debug.Log("cambio de arma armaController");
         }
     }
 
@@ -154,28 +172,27 @@ public class armaController : MonoBehaviour
 
     public void Disparo(InputAction.CallbackContext context)
     {
-        if (!context.performed)
-            return;
-
-        if (!primariaActiva)
+        if (context.performed)
         {
-            animatorActual.SetTrigger("Disparo");
-            return;
+            if (!primariaActiva)
+            {
+                animatorActual.SetTrigger("Disparo");
+                return;
+            }
+
+            disparando = true;
         }
-
-        if (municionActual == null)
-            return;
-
-        if (!municionActual.PuedeDisparar())
-            return;
-
-        animatorActual.SetTrigger("Disparo");
+        else if (context.canceled)
+        {
+            disparando = false;
+            animatorActual.SetBool("Disparo", false);
+        }
     }
 
     public void CambiarArma()
     {
         primariaActiva = !primariaActiva;
-
+        Debug.Log("Cambio de arma2");
         ActualizarArmaVisible();
         ActualizarAnimator();
 
@@ -189,5 +206,18 @@ public class armaController : MonoBehaviour
     public Animator ObtenerAnimatorActual()
     {
         return animatorActual;
+    }
+
+    [SerializeField] private bool fusilDesbloqueado = false;
+
+    public void DesbloquearFusil()
+    {
+        if (fusilDesbloqueado)
+            return; 
+
+        fusilDesbloqueado = true;
+        armaActiva = TipoArma.fusil;
+        ActualizarArmaVisible();
+        ActualizarAnimator();
     }
 }

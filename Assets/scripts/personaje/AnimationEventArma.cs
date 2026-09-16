@@ -16,6 +16,7 @@ public class AnimationEventArma : MonoBehaviour
     public void CambiarArma()
     {
         armaController.CambiarArma();
+        Debug.Log("Cambio de arma animationEvent");
     }
 
     public void SonidoDisparo()

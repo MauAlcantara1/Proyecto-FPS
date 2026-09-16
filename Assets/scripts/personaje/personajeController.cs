@@ -13,6 +13,8 @@ public class personajeController : MonoBehaviour
     [SerializeField] public AudioClip pasosCorrer;
     [SerializeField] public Animator animator;
     [SerializeField] private GameObject linterna;
+    [SerializeField] private Puntuacion puntuacion;
+
     
     [SerializeField] private personajeVida saludJugador;   // <-- agregar esto
 
@@ -167,5 +169,13 @@ public class personajeController : MonoBehaviour
         {
             saludJugador.CancelarCuracion();
         }
+    }
+
+    public void comprar(InputAction.CallbackContext context)
+    {
+        if (!context.performed)
+            return;
+
+        puntuacion.ComprarArma();
     }
 }
