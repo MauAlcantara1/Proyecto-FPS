@@ -151,6 +151,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemigoRango
   enemigo: {fileID: 1904836885670175119}
+  vidaMaxima: 100
+  puntuacion: {fileID: 0}
   velocidad: 2
-  perseguir: 0
   rango: 20

@@ -4,100 +4,196 @@ using UnityEngine;
 
 public class HordaManager : MonoBehaviour
 {
-    [Header("Enemigo")]
-    [SerializeField] private GameObject enemigo;
+    public enum Dificultad { Facil, Normal, Dificil, Pesadilla }
+
+    [Header("Dificultad")]
+    [SerializeField] private Dificultad dificultadActual = Dificultad.Normal;
+
+    [Header("Enemigo Prefab")]
+    [SerializeField] private GameObject enemigoPrefab;
 
     [Header("Puntos de aparición")]
     [SerializeField] private Transform[] spawnPoints;
 
-    [Header("Configuración de oleadas")]
-    [SerializeField] private int enemigosPorWave = 5;
-    [SerializeField] private float spawnDelay = 0.5f;
+    [Header("Límites y Oleadas")]
+    [SerializeField] private int baseEnemigosPorWave = 6;
+    [SerializeField] private int incrementoPorRonda = 2;
+    [SerializeField] private int maxZombiesSimultaneos = 12;
+    [SerializeField] private float spawnDelay = 0.8f;
     [SerializeField] private float tiempoEntreWaves = 5f;
 
-    private List<GameObject> enemigosActivos = new List<GameObject>();
+    [Header("Stats Base del Zombie")]
+    [SerializeField] private int vidaBaseZombie = 50;
+    [SerializeField] private int vidaExtraPorBloque = 25;
+    [SerializeField] private int dañoBaseZombie = 10;
 
+    [Header("Interfaz y Audio")]
+    [SerializeField] private HordaHUD hordaHUD;
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip sonidoInicioRonda;
+    [SerializeField] private AudioClip sonidoFinRonda;
+
+    // Control interno de la horda
+    private List<GameObject> enemigosVivosEnMapa = new List<GameObject>();
     private int waveActual = 0;
+    private int enemigosPendientesPorSpawnear = 0;
+    private int totalEnemigosRestantesRonda = 0;
     private bool waveEnProgreso = false;
+    
 
     private void Start()
     {
+        if (hordaHUD == null) hordaHUD = FindFirstObjectByType<HordaHUD>();
+        if (audioSource == null) audioSource = GetComponent<AudioSource>();
+
         StartCoroutine(StartNextWave());
     }
 
     private IEnumerator StartNextWave()
     {
         waveEnProgreso = false;
-
-        Debug.Log("Siguiente oleada en " + tiempoEntreWaves + " segundos.");
-
         yield return new WaitForSeconds(tiempoEntreWaves);
 
         waveActual++;
-
-        Debug.Log("===== OLEADA " + waveActual + " =====");
-
         waveEnProgreso = true;
 
-        for (int i = 0; i < enemigosPorWave; i++)
+        if (audioSource != null && sonidoInicioRonda != null)
         {
-            SpawnEnemy();
+            audioSource.PlayOneShot(sonidoInicioRonda);
+        }
 
-            yield return new WaitForSeconds(spawnDelay);
+        int totalEnemigosOleada = CalcularCantidadZombies();
+        enemigosPendientesPorSpawnear = totalEnemigosOleada;
+        totalEnemigosRestantesRonda = totalEnemigosOleada;
+
+        if (hordaHUD != null)
+        {
+            hordaHUD.ActualizarRonda(waveActual);
+            hordaHUD.ActualizarEnemigosRestantes(totalEnemigosRestantesRonda);
+        }
+
+        StartCoroutine(GestorDeSpawn());
+    }
+
+    private IEnumerator GestorDeSpawn()
+    {
+        while (enemigosPendientesPorSpawnear > 0)
+        {
+            if (enemigosVivosEnMapa.Count < maxZombiesSimultaneos)
+            {
+                SpawnEnemy();
+                enemigosPendientesPorSpawnear--;
+                yield return new WaitForSeconds(spawnDelay);
+            }
+            else
+            {
+                yield return new WaitForSeconds(0.5f);
+            }
         }
     }
 
-    private void SpawnEnemy()
+   private void SpawnEnemy()
     {
-        if (enemigo == null)
-        {
-            Debug.LogError("HordeManager: No se ha asignado el Enemy Prefab.");
-            return;
-        }
+        if (enemigoPrefab == null || spawnPoints == null || spawnPoints.Length == 0) return;
 
-        if (spawnPoints == null || spawnPoints.Length == 0)
-        {
-            Debug.LogError("HordeManager: No hay Spawn Points.");
-            return;
-        }
+        Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
 
-        Transform spawnPoint =
-            spawnPoints[Random.Range(0, spawnPoints.Length)];
-
-        GameObject enemy = Instantiate(
-            enemigo,
+        GameObject nuevoEnemigo = Instantiate(
+            enemigoPrefab,
             spawnPoint.position,
             spawnPoint.rotation
         );
 
-        enemigosActivos.Add(enemy);
+        int vidaCalculada = CalcularVidaZombie();
+        int dañoCalculado = CalcularDañoZombie();
+        float velocidadCalculada = 3.5f;
 
-        Debug.Log("Enemigo generado. Enemigos activos: " + enemigosActivos.Count);
+        EnemigoController controller = nuevoEnemigo.GetComponent<EnemigoController>();
+        if (controller != null)
+        {
+            controller.ConfigurarAtributos(vidaCalculada, dañoCalculado, velocidadCalculada, this);
+        }
+
+        enemigosVivosEnMapa.Add(nuevoEnemigo);
     }
-
-    private void Update()
+    public void EnemyDied(GameObject enemy)
     {
-        enemigosActivos.RemoveAll(enemy => enemy == null);
+        if (enemigosVivosEnMapa.Contains(enemy))
+        {
+            enemigosVivosEnMapa.Remove(enemy);
+        }
 
-        if (waveEnProgreso && enemigosActivos.Count == 0)
+        totalEnemigosRestantesRonda--;
+        if (totalEnemigosRestantesRonda < 0) totalEnemigosRestantesRonda = 0;
+
+        if (hordaHUD != null)
+        {
+            hordaHUD.ActualizarEnemigosRestantes(totalEnemigosRestantesRonda);
+        }
+
+        if (enemigosPendientesPorSpawnear <= 0 && enemigosVivosEnMapa.Count == 0 && waveEnProgreso)
         {
             waveEnProgreso = false;
 
-            Debug.Log("Oleada " + waveActual + " terminada.");
+            if (audioSource != null && sonidoFinRonda != null)
+            {
+                audioSource.PlayOneShot(sonidoFinRonda);
+            }
 
             StartCoroutine(StartNextWave());
         }
     }
 
-    public void EnemyDied(GameObject enemy)
+    private void Update()
     {
-        if (enemigosActivos.Contains(enemy))
-        {
-            enemigosActivos.Remove(enemy);
-        }
-
-        Debug.Log(
-            "Enemigo eliminado. Quedan: " + enemigosActivos.Count
-        );
+        enemigosVivosEnMapa.RemoveAll(e => e == null);
     }
+
+    private int CalcularCantidadZombies()
+    {
+        float multDificultad = dificultadActual switch
+        {
+            Dificultad.Facil => 0.8f,
+            Dificultad.Normal => 1.0f,
+            Dificultad.Dificil => 1.3f,
+            Dificultad.Pesadilla => 1.6f,
+            _ => 1.0f
+        };
+
+        return Mathf.Max(1, Mathf.RoundToInt((baseEnemigosPorWave + (waveActual - 1) * incrementoPorRonda) * multDificultad));
+    }
+
+    private int CalcularVidaZombie()
+    {
+        float multDificultad = dificultadActual switch
+        {
+            Dificultad.Facil => 0.8f,
+            Dificultad.Normal => 1.0f,
+            Dificultad.Dificil => 1.4f,
+            Dificultad.Pesadilla => 2.0f,
+            _ => 1.0f
+        };
+
+       int bloquesDeCinco = (waveActual - 1) / 5;
+
+        int vidaCalculada = Mathf.RoundToInt((vidaBaseZombie + (bloquesDeCinco * vidaExtraPorBloque)) * multDificultad);
+
+    return vidaCalculada;
+    }
+
+    private int CalcularDañoZombie()
+    {
+        float multDificultad = dificultadActual switch
+        {
+            Dificultad.Facil => 0.7f,
+            Dificultad.Normal => 1.0f,
+            Dificultad.Dificil => 1.5f,
+            Dificultad.Pesadilla => 2.2f,
+            _ => 1.0f
+        };
+
+        return Mathf.Max(1, Mathf.RoundToInt(dañoBaseZombie * multDificultad));
+    }
+
+    public void EstablecerDificultad(Dificultad nuevaDificultad) => dificultadActual = nuevaDificultad;
 }
