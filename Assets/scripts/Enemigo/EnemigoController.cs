@@ -8,6 +8,10 @@ public class EnemigoController : MonoBehaviour
     private Transform objetivo;
     private personajeVida jugadorVida;
 
+    [Header("Comportamiento")]
+    [Tooltip("Si es True, persigue siempre. Si es False, es decorativo y espera a que te acerques.")]
+    public bool esZombiDeHorda = false;
+
     [Header("Vida")]
     [SerializeField] private int vidaMaxima = 100;
     private int vidaActual;
@@ -64,13 +68,14 @@ public class EnemigoController : MonoBehaviour
         siguienteTiempoGrunido = Time.time + Random.Range(1f, 3f);
     }
 
-    public void ConfigurarAtributos(int nuevaVida, int nuevoDaño, float nuevaVelocidad, HordaManager manager)
+    public void ConfigurarAtributos(int nuevaVida, int nuevoDaño, float nuevaVelocidad, HordaManager manager, bool deHorda)
     {
         vidaMaxima = nuevaVida;
         vidaActual = nuevaVida;
         dañoAtaque = nuevoDaño;
         velocidad = nuevaVelocidad;
         hordaManager = manager;
+        esZombiDeHorda = deHorda;
 
         if (enemigo != null) enemigo.speed = velocidad;
     }
@@ -79,27 +84,35 @@ public class EnemigoController : MonoBehaviour
     {
         if (estaMuerto || objetivo == null || enemigo == null) return;
 
+        distancia = Vector3.Distance(enemigo.transform.position, objetivo.position);
+
+        // Si te pegas, te ataca
+        if (distancia <= distanciaAtaque)
+        {
+            Atacar();
+        }
+        // Si pertenece a la horda o te acercaste lo suficiente como para despertarlo
+        else if (esZombiDeHorda || distancia <= rango)
+        {
+            esZombiDeHorda = true; // Una vez te detecta, se vuelve hostil para siempre (ya no te suelta)
+            Perseguir();
+        }
+        // Si es decorativo y estás lejos, se queda quieto
+        else
+        {
+            PararPerseguir();
+        }
+
         if (animator != null)
         {
             animator.SetFloat("Velocidad", enemigo.velocity.magnitude);
         }
 
-        distancia = Vector3.Distance(enemigo.transform.position, objetivo.position);
-
-        if (distancia <= distanciaAtaque)
+        // Solo gruñe si está activado (persiguiendo)
+        if (esZombiDeHorda)
         {
-            Atacar();
+            ControlarGrunido();
         }
-        else if (distancia < rango)
-        {
-            Perseguir();
-        }
-        else if (distancia > rango + 3f)
-        {
-            PararPerseguir();
-        }
-
-        ControlarGrunido();
     }
 
     private void ControlarGrunido()
@@ -175,8 +188,10 @@ public class EnemigoController : MonoBehaviour
     {
         if (estaMuerto) return;
 
-        vidaActual -= daño;
+        // Si le disparas a un zombie decorativo de lejos, se enfada y va por ti
+        esZombiDeHorda = true; 
 
+        vidaActual -= daño;
         if (puntuacion != null) puntuacion.SumarPuntosPorDaño();
 
         if (vidaActual <= 0)
@@ -186,26 +201,21 @@ public class EnemigoController : MonoBehaviour
     }
 
     private void OnCollisionEnter(Collision collision)
-{
-    if (collision.gameObject.CompareTag("Bala"))
     {
-        int dañoFinal = 25;
-
-        if (colliderCabeza != null && collision.collider == colliderCabeza)
+        if (collision.gameObject.CompareTag("Bala"))
         {
-            dañoFinal = Mathf.RoundToInt(dañoFinal * multiplicadorCabeza);
-            Debug.Log("<color=red>¡HEADSHOT!</color> Daño crítico aplicado: " + dañoFinal);
-        }
-        else
-        {
-            Debug.Log("Impacto al cuerpo. Daño: " + dañoFinal);
-        }
+            int dañoFinal = 25;
 
-        RecibirDaño(dañoFinal);
-
-        Destroy(collision.gameObject);
+            if (colliderCabeza != null && collision.collider == colliderCabeza)
+            {
+                dañoFinal = Mathf.RoundToInt(dañoFinal * multiplicadorCabeza);
+                Debug.Log("<color=red>¡HEADSHOT!</color> Daño crítico aplicado: " + dañoFinal);
+            }
+            
+            RecibirDaño(dañoFinal);
+            Destroy(collision.gameObject);
+        }
     }
-}
 
     private void Morir()
     {
@@ -220,15 +230,11 @@ public class EnemigoController : MonoBehaviour
         Collider col = GetComponent<Collider>();
         if (col != null) col.enabled = false;
 
-        if (animator != null)
-        {
-            animator.SetTrigger("Morir");
-        }
+        if (animator != null) animator.SetTrigger("Morir");
 
         if (audioSource != null)
         {
             audioSource.Stop();
-
             if (sonidoMuerte != null)
             {
                 audioSource.pitch = Random.Range(0.85f, 1.05f);
@@ -243,16 +249,4 @@ public class EnemigoController : MonoBehaviour
 
         Destroy(gameObject, 3.5f);
     }
-
-/*    private void OnDrawGizmos()
-    {
-        Vector3 centro = enemigo != null ? enemigo.transform.position : transform.position;
-
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(centro, rango);
-
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(centro, distanciaAtaque);
-    }
-*/
 }
