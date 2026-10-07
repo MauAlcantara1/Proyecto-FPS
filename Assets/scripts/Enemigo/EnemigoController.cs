@@ -39,6 +39,8 @@ public class EnemigoController : MonoBehaviour
     [SerializeField] private float intervaloGrunidoMax = 9f;
     private float siguienteTiempoGrunido = 0f;
 
+    int dificultad = SelectorPartida.Dificultad;
+    
     private void Awake()
     {
         vidaActual = vidaMaxima;
@@ -50,6 +52,17 @@ public class EnemigoController : MonoBehaviour
 
     private void Start()
     {
+        int dificultad = SelectorPartida.Dificultad;
+
+        if (dificultad == 0)
+        {
+            Debug.Log("Enemigo en dificultad Fácil");
+        }
+
+        if (dificultad == 1)
+        {
+            Debug.Log("Enemigo en dificultad Difícil");
+        }        
         GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
         if (playerObject != null)
         {
