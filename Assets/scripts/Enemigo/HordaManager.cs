@@ -98,11 +98,21 @@ public class HordaManager : MonoBehaviour
 
         Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
 
+       Vector3 posicionSegura = spawnPoint.position;
+        // Busca el punto más cercano de la malla azul en un radio de 5 metros
+        if (UnityEngine.AI.NavMesh.SamplePosition(spawnPoint.position, out UnityEngine.AI.NavMeshHit hit, 5.0f, UnityEngine.AI.NavMesh.AllAreas))
+        {
+            posicionSegura = hit.position;
+        }
+
         GameObject nuevoEnemigo = Instantiate(
             enemigoPrefab,
-            spawnPoint.position,
+            posicionSegura,
             spawnPoint.rotation
         );
+        
+        // Forzar al agente a acoplarse
+        nuevoEnemigo.GetComponent<UnityEngine.AI.NavMeshAgent>().Warp(posicionSegura);
 
         int vidaCalculada = CalcularVidaZombie();
         int dañoCalculado = CalcularDañoZombie();
@@ -111,7 +121,7 @@ public class HordaManager : MonoBehaviour
         EnemigoController controller = nuevoEnemigo.GetComponent<EnemigoController>();
         if (controller != null)
         {
-            controller.ConfigurarAtributos(vidaCalculada, dañoCalculado, velocidadCalculada, this);
+            controller.ConfigurarAtributos(vidaCalculada, dañoCalculado, velocidadCalculada, this, true);
         }
 
         enemigosVivosEnMapa.Add(nuevoEnemigo);

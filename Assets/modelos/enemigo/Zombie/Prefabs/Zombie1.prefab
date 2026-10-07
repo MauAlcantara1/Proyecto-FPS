@@ -1821,7 +1821,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3095270377931777224}
@@ -1854,7 +1854,7 @@ Animator:
   m_Controller: {fileID: 9100000, guid: 47bb4a90f1e8ab3449a6771846293f59, type: 2}
   m_CullingMode: 1
   m_UpdateMode: 0
-  m_ApplyRootMotion: 1
+  m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
   m_AnimatePhysics: 0
@@ -1949,9 +1949,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemigoController
   enemigo: {fileID: 6121435821403099409}
   animator: {fileID: 7389507112651452681}
+  esZombiDeHorda: 0
   vidaMaxima: 100
   puntuacion: {fileID: 0}
-  velocidad: 3.5
+  velocidad: 7
   rango: 20
   "da\xF1oAtaque": 10
   distanciaAtaque: 2
