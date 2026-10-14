@@ -1,16 +1,23 @@
+
 using UnityEngine;
 using UnityEngine.AI;
+using Photon.Pun;
+using System.Collections;
+using Photon.Realtime;
 
-public class EnemigoController : MonoBehaviour
+public class EnemigoController : MonoBehaviourPun, IPunInstantiateMagicCallback
 {
     public NavMeshAgent enemigo;
     [SerializeField] private Animator animator;
+
     private Transform objetivo;
     private personajeVida jugadorVida;
 
     [Header("Comportamiento")]
-    [Tooltip("Si es True, persigue siempre. Si es False, es decorativo y espera a que te acerques.")]
     public bool esZombiDeHorda = false;
+
+    [SerializeField] private float intervaloBusqueda = 0.4f;
+    private float siguienteBusqueda = 0f;
 
     [Header("Vida")]
     [SerializeField] private int vidaMaxima = 100;
@@ -24,7 +31,7 @@ public class EnemigoController : MonoBehaviour
     private HordaManager hordaManager;
 
     [Header("Combate")]
-    [SerializeField] private int dañoAtaque = 10;
+    [SerializeField] private int dañoAtaque = 3;
     [SerializeField] private float distanciaAtaque = 2f;
     [SerializeField] private float cadenciaAtaque = 1.2f;
     private float siguienteTiempoAtaque = 0f;
@@ -43,45 +50,118 @@ public class EnemigoController : MonoBehaviour
     [SerializeField] private float intervaloGrunidoMax = 9f;
     private float siguienteTiempoGrunido = 0f;
 
-    int dificultad = SelectorPartida.Dificultad;
-    
     private void Awake()
     {
         vidaActual = vidaMaxima;
 
-        if (enemigo == null) enemigo = GetComponent<NavMeshAgent>();
-        if (animator == null) animator = GetComponentInChildren<Animator>();
-        if (audioSource == null) audioSource = GetComponent<AudioSource>();
+        if (enemigo == null)
+            enemigo = GetComponent<NavMeshAgent>();
+
+        if (animator == null)
+            animator = GetComponentInChildren<Animator>();
+
+        if (audioSource == null)
+            audioSource = GetComponent<AudioSource>();
     }
 
     private void Start()
     {
         int dificultad = SelectorPartida.Dificultad;
 
-        if (dificultad == 0)
-        {
-            Debug.Log("Enemigo en dificultad Fácil");
-        }
+        Debug.Log(dificultad == 0
+            ? "Enemigo en dificultad Fácil"
+            : "Enemigo en dificultad Difícil");
 
-        if (dificultad == 1)
-        {
-            Debug.Log("Enemigo en dificultad Difícil");
-        }        
-        GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
-        if (playerObject != null)
-        {
-            objetivo = playerObject.transform;
-            jugadorVida = playerObject.GetComponent<personajeVida>();
-        }
+        if (hordaManager == null)
+            hordaManager = FindFirstObjectByType<HordaManager>();
 
-        if (hordaManager == null) hordaManager = FindFirstObjectByType<HordaManager>();
-        if (puntuacion == null) puntuacion = FindFirstObjectByType<Puntuacion>();
+        if (puntuacion == null)
+            puntuacion = FindFirstObjectByType<Puntuacion>();
 
-        if (enemigo != null) enemigo.speed = velocidad;
-        siguienteTiempoGrunido = Time.time + Random.Range(1f, 3f);
+        if (enemigo != null)
+            enemigo.speed = velocidad;
+
+        siguienteTiempoGrunido =
+            Time.time + Random.Range(1f, 3f);
+
+        BuscarJugadorMasCercano();
     }
 
-    public void ConfigurarAtributos(int nuevaVida, int nuevoDaño, float nuevaVelocidad, HordaManager manager, bool deHorda)
+    private bool TieneAutoridad()
+    {
+        return !PhotonNetwork.InRoom ||
+               PhotonNetwork.IsMasterClient;
+    }
+
+    private void BuscarJugadorMasCercano()
+    {
+        GameObject[] jugadores =
+            GameObject.FindGameObjectsWithTag("Player");
+
+        Transform nuevoObjetivo = null;
+        personajeVida nuevaVida = null;
+
+        float distanciaMinima = Mathf.Infinity;
+
+        foreach (GameObject jugador in jugadores)
+        {
+            personajeVida vida =
+                jugador.GetComponent<personajeVida>();
+
+            if (vida == null)
+                vida = jugador.GetComponentInParent<personajeVida>();
+
+            if (vida == null || !vida.EstaVivo())
+                continue;
+
+            float distanciaJugador = Vector3.Distance(
+                transform.position,
+                vida.transform.position
+            );
+
+            if (distanciaJugador < distanciaMinima)
+            {
+                distanciaMinima = distanciaJugador;
+                nuevoObjetivo = vida.transform;
+                nuevaVida = vida;
+            }
+        }
+
+        objetivo = nuevoObjetivo;
+        jugadorVida = nuevaVida;
+    }
+
+    public void RecibirImpacto(
+        int dañoBase,
+        Collider colliderImpactado)
+    {
+        if (estaMuerto)
+            return;
+
+        int dañoFinal = dañoBase;
+
+        if (colliderCabeza != null &&
+            colliderImpactado == colliderCabeza)
+        {
+            dañoFinal = Mathf.RoundToInt(
+                dañoBase * multiplicadorCabeza
+            );
+
+            Debug.Log(
+                "¡HEADSHOT! Daño: " + dañoFinal
+            );
+        }
+
+
+        RecibirDaño(dañoFinal);
+    }
+
+    public void ConfigurarAtributos(
+        int nuevaVida,
+        int nuevoDaño,
+        float nuevaVelocidad,
+        HordaManager manager,
+        bool deHorda)
     {
         vidaMaxima = nuevaVida;
         vidaActual = nuevaVida;
@@ -90,27 +170,46 @@ public class EnemigoController : MonoBehaviour
         hordaManager = manager;
         esZombiDeHorda = deHorda;
 
-        if (enemigo != null) enemigo.speed = velocidad;
+        if (enemigo != null)
+            enemigo.speed = velocidad;
     }
 
     private void Update()
     {
-        if (estaMuerto || objetivo == null || enemigo == null) return;
+        if (estaMuerto || enemigo == null)
+            return;
 
-        distancia = Vector3.Distance(enemigo.transform.position, objetivo.position);
+        if (!TieneAutoridad())
+            return;
 
-        // Si te pegas, te ataca
+        if (Time.time >= siguienteBusqueda)
+        {
+            siguienteBusqueda =
+                Time.time + intervaloBusqueda;
+
+            BuscarJugadorMasCercano();
+        }
+
+        if (objetivo == null)
+        {
+            PararPerseguir();
+            return;
+        }
+
+        distancia = Vector3.Distance(
+            transform.position,
+            objetivo.position
+        );
+
         if (distancia <= distanciaAtaque)
         {
             Atacar();
         }
-        // Si pertenece a la horda o te acercaste lo suficiente como para despertarlo
         else if (esZombiDeHorda || distancia <= rango)
         {
-            esZombiDeHorda = true; // Una vez te detecta, se vuelve hostil para siempre (ya no te suelta)
+            esZombiDeHorda = true;
             Perseguir();
         }
-        // Si es decorativo y estás lejos, se queda quieto
         else
         {
             PararPerseguir();
@@ -118,148 +217,323 @@ public class EnemigoController : MonoBehaviour
 
         if (animator != null)
         {
-            animator.SetFloat("Velocidad", enemigo.velocity.magnitude);
+            animator.SetFloat(
+                "Velocidad",
+                enemigo.velocity.magnitude
+            );
         }
 
-        // Solo gruñe si está activado (persiguiendo)
         if (esZombiDeHorda)
-        {
             ControlarGrunido();
-        }
     }
 
     private void ControlarGrunido()
     {
-        if (Time.time >= siguienteTiempoGrunido)
-        {
-            siguienteTiempoGrunido = Time.time + Random.Range(intervaloGrunidoMin, intervaloGrunidoMax);
+        if (Time.time < siguienteTiempoGrunido)
+            return;
 
-            if (sonidosGrunido != null && sonidosGrunido.Length > 0 && audioSource != null)
-            {
-                AudioClip clipAleatorio = sonidosGrunido[Random.Range(0, sonidosGrunido.Length)];
-                audioSource.pitch = Random.Range(0.85f, 1.15f);
-                audioSource.PlayOneShot(clipAleatorio);
-            }
-        }
+        siguienteTiempoGrunido = Time.time +
+            Random.Range(
+                intervaloGrunidoMin,
+                intervaloGrunidoMax
+            );
+
+        if (sonidosGrunido == null ||
+            sonidosGrunido.Length == 0 ||
+            audioSource == null)
+            return;
+
+        AudioClip clip = sonidosGrunido[
+            Random.Range(0, sonidosGrunido.Length)
+        ];
+
+        audioSource.pitch =
+            Random.Range(0.85f, 1.15f);
+
+        audioSource.PlayOneShot(clip);
     }
 
     private void Perseguir()
     {
-        if (enemigo.isOnNavMesh)
-        {
-            enemigo.isStopped = false;
-            enemigo.SetDestination(objetivo.position);
-        }
+        if (objetivo == null || !enemigo.isOnNavMesh)
+            return;
+
+        enemigo.isStopped = false;
+        enemigo.SetDestination(objetivo.position);
     }
 
     private void PararPerseguir()
     {
-        if (enemigo.isOnNavMesh)
-        {
-            enemigo.isStopped = true;
-            enemigo.ResetPath();
-        }
+        if (enemigo == null || !enemigo.isOnNavMesh)
+            return;
+
+        enemigo.isStopped = true;
+        enemigo.ResetPath();
     }
 
     private void Atacar()
     {
         if (enemigo.isOnNavMesh)
-        {
             enemigo.isStopped = true;
+
+        Vector3 direccion =
+            objetivo.position - transform.position;
+
+        direccion.y = 0f;
+
+        if (direccion.sqrMagnitude > 0.001f)
+        {
+            transform.rotation = Quaternion.Slerp(
+                transform.rotation,
+                Quaternion.LookRotation(direccion),
+                Time.deltaTime * 5f
+            );
         }
 
-        Vector3 direccion = (objetivo.position - transform.position).normalized;
-        direccion.y = 0;
-        if (direccion != Vector3.zero)
+        if (Time.time < siguienteTiempoAtaque)
+            return;
+
+        siguienteTiempoAtaque =
+            Time.time + cadenciaAtaque;
+
+        if (animator != null)
+            animator.SetTrigger("Atacar");
+
+        if (audioSource != null && sonidoAtaque != null)
         {
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direccion), Time.deltaTime * 5f);
+            audioSource.pitch =
+                Random.Range(0.9f, 1.1f);
+
+            audioSource.PlayOneShot(sonidoAtaque);
         }
 
-        if (Time.time >= siguienteTiempoAtaque)
+        if (jugadorVida != null && jugadorVida.EstaVivo())
         {
-            siguienteTiempoAtaque = Time.time + cadenciaAtaque;
-
-            if (animator != null)
-            {
-                animator.SetTrigger("Atacar");
-            }
-
-            if (audioSource != null && sonidoAtaque != null)
-            {
-                audioSource.pitch = Random.Range(0.9f, 1.1f);
-                audioSource.PlayOneShot(sonidoAtaque);
-            }
-
-            if (jugadorVida != null)
-            {
-                jugadorVida.RecibirDaño(dañoAtaque);
-            }
+            jugadorVida.RecibirDaño(dañoAtaque);
         }
     }
 
     public void RecibirDaño(int daño)
     {
-        if (estaMuerto) return;
+        if (estaMuerto || daño <= 0)
+            return;
 
-        // Si le disparas a un zombie decorativo de lejos, se enfada y va por ti
-        esZombiDeHorda = true; 
-
-        vidaActual -= daño;
-        if (puntuacion != null) puntuacion.SumarPuntosPorDaño();
-
-        if (vidaActual <= 0)
+        if (!PhotonNetwork.InRoom)
         {
-            Morir();
+            AplicarDaño(daño, null);
+            return;
+        }
+
+        if (PhotonNetwork.IsMasterClient)
+        {
+            AplicarDaño(daño, PhotonNetwork.LocalPlayer);
+        }
+        else
+        {
+            photonView.RPC(
+                nameof(RPC_SolicitarDaño),
+                RpcTarget.MasterClient,
+                daño
+            );
         }
     }
 
-    private void OnCollisionEnter(Collision collision)
+    [PunRPC]
+    private void RPC_SolicitarDaño(
+        int daño,
+        PhotonMessageInfo info)
     {
-        if (collision.gameObject.CompareTag("Bala"))
-        {
-            int dañoFinal = 25;
+        if (!PhotonNetwork.IsMasterClient)
+            return;
 
-            if (colliderCabeza != null && collision.collider == colliderCabeza)
+        AplicarDaño(daño, info.Sender);
+    }
+
+    private void AplicarDaño(int daño, Player jugadorQueDisparo)
+    {
+        if (estaMuerto || daño <= 0)
+            return;
+
+        esZombiDeHorda = true;
+        vidaActual = Mathf.Max(0, vidaActual - daño);
+
+        if (PhotonNetwork.InRoom)
+        {
+            if (jugadorQueDisparo != null)
             {
-                dañoFinal = Mathf.RoundToInt(dañoFinal * multiplicadorCabeza);
-                Debug.Log("<color=red>¡HEADSHOT!</color> Daño crítico aplicado: " + dañoFinal);
+                photonView.RPC(
+                    nameof(RPC_DarPuntos),
+                    jugadorQueDisparo
+                );
             }
-            
-            RecibirDaño(dañoFinal);
-            Destroy(collision.gameObject);
         }
+        else
+        {
+            // Compatible con un jugador.
+            Puntuacion puntos =
+                FindFirstObjectByType<Puntuacion>();
+
+            if (puntos != null)
+                puntos.SumarPuntosPorDaño();
+        }
+
+        if (vidaActual <= 0)
+            Morir();
     }
 
     private void Morir()
     {
-        estaMuerto = true;
+        if (estaMuerto)
+            return;
 
-        if (enemigo != null && enemigo.isOnNavMesh)
+        if (PhotonNetwork.InRoom)
         {
-            enemigo.isStopped = true;
+            if (!PhotonNetwork.IsMasterClient)
+                return;
+
+            photonView.RPC(
+                nameof(RPC_Morir),
+                RpcTarget.All
+            );
+        }
+        else
+        {
+            EjecutarMuerteVisual();
+            StartCoroutine(DestruirZombie());
+        }
+    }
+
+    [PunRPC]
+    private void RPC_Morir()
+    {
+        EjecutarMuerteVisual();
+
+        // Solo el Master Client controla
+        // la destrucción del objeto de red.
+        if (PhotonNetwork.IsMasterClient)
+        {
+            StartCoroutine(DestruirZombie());
+        }
+    }
+
+    private void EjecutarMuerteVisual()
+    {
+        if (estaMuerto)
+            return;
+
+        estaMuerto = true;
+        vidaActual = 0;
+
+        if (enemigo != null && enemigo.enabled)
+        {
+            if (enemigo.isOnNavMesh)
+                enemigo.isStopped = true;
+
             enemigo.enabled = false;
         }
 
-        Collider col = GetComponent<Collider>();
-        if (col != null) col.enabled = false;
+        // Desactivar los colliders del zombi,
+        // incluyendo los de las partes del cuerpo.
+        Collider[] colliders =
+            GetComponentsInChildren<Collider>();
 
-        if (animator != null) animator.SetTrigger("Morir");
+        foreach (Collider col in colliders)
+        {
+            col.enabled = false;
+        }
+
+        if (animator != null)
+            animator.SetTrigger("Morir");
 
         if (audioSource != null)
         {
             audioSource.Stop();
+
             if (sonidoMuerte != null)
             {
-                audioSource.pitch = Random.Range(0.85f, 1.05f);
+                audioSource.pitch =
+                    Random.Range(0.85f, 1.05f);
+
                 audioSource.PlayOneShot(sonidoMuerte);
             }
         }
 
-        if (hordaManager != null)
+        // Solo el líder actualiza el contador.
+        if (hordaManager != null &&
+            (!PhotonNetwork.InRoom ||
+            PhotonNetwork.IsMasterClient))
         {
             hordaManager.EnemyDied(gameObject);
         }
-
-        Destroy(gameObject, 3.5f);
     }
+
+    private IEnumerator DestruirZombie()
+    {
+        yield return new WaitForSeconds(3.5f);
+
+        if (PhotonNetwork.InRoom)
+        {
+            if (PhotonNetwork.IsMasterClient)
+            {
+                PhotonNetwork.Destroy(gameObject);
+            }
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
+    public void OnPhotonInstantiate(PhotonMessageInfo info)
+    {
+        object[] datos = info.photonView.InstantiationData;
+
+        if (datos == null || datos.Length < 3)
+            return;
+
+        int vida = (int)datos[0];
+        int daño = (int)datos[1];
+        float velocidadNueva = (float)datos[2];
+
+        HordaManager manager =
+            FindFirstObjectByType<HordaManager>();
+
+        ConfigurarAtributos(
+            vida,
+            daño,
+            velocidadNueva,
+            manager,
+            true
+        );
+
+        Debug.Log(
+            "Zombie configurado por Photon. Vida: " +
+            vida + " | Daño: " + daño +
+            " | Velocidad: " + velocidadNueva
+        );
+    }
+
+    [PunRPC]
+    private void RPC_DarPuntos(PhotonMessageInfo info)
+    {
+        // Aceptar recompensas únicamente del líder.
+        if (!PhotonNetwork.InRoom ||
+            info.Sender != PhotonNetwork.MasterClient)
+            return;
+
+        Puntuacion puntosLocales =
+            FindFirstObjectByType<Puntuacion>();
+
+        if (puntosLocales != null)
+        {
+            puntosLocales.SumarPuntosPorDaño();
+        }
+        else
+        {
+            Debug.LogWarning(
+                "No se encontró Puntuacion local."
+            );
+        }
+    }
+
 }

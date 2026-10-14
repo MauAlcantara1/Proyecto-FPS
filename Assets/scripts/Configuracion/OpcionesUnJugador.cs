@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class SelectorPartida : MonoBehaviour
 {
@@ -18,12 +19,12 @@ public class SelectorPartida : MonoBehaviour
     [SerializeField] private Sprite elegidoDificil;
     [SerializeField] private Sprite noSeleccionadoDificil;
 
-    [SerializeField] private TMP_InputField inputNombre;
-    
+    [SerializeField] private TMP_InputField inputNombre;    
     private static int dificultad = 0;
+    private static string nombreJugador = "";
 
 
-    private string nombreJugador;
+    [SerializeField] private Scene escenarioSolo;
 
 
     private void Start()
@@ -44,7 +45,6 @@ public class SelectorPartida : MonoBehaviour
 
         if (dificultad == 0)
         {
-            // Fácil
             botonFacil.image.sprite = elegidoFacil;
             botonDificil.image.sprite = noSeleccionadoDificil;
 
@@ -53,7 +53,6 @@ public class SelectorPartida : MonoBehaviour
 
         if (dificultad == 1)
         {
-            // Difícil
             botonFacil.image.sprite = noSeleccionadoFacil;
             botonDificil.image.sprite = elegidoDificil;
 
@@ -75,5 +74,10 @@ public class SelectorPartida : MonoBehaviour
     {
         nombreJugador = nuevoNombre;
         Debug.Log("Nombre del jugador: " + nombreJugador);
+    }
+
+    public void EscenaSolitario()
+    {
+        SceneManager.LoadScene("SampleScene");
     }
 }

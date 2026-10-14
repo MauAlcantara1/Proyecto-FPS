@@ -1,5 +1,7 @@
+
 using TMPro;
 using UnityEngine;
+using Photon.Pun;
 
 public class MunicionArma : MonoBehaviour
 {
@@ -13,18 +15,33 @@ public class MunicionArma : MonoBehaviour
     [SerializeField] private TMP_Text textoMunicion;
 
     [Header("Bala")]
-    [SerializeField] GameObject bala;
-    [SerializeField] Transform spawnPoint;
+    [SerializeField] private GameObject bala;
+    [SerializeField] private Transform spawnPoint;
     [SerializeField] private int velocidadBala = 10;
 
     [SerializeField] private ParticleSystem efectoDisparo;
 
-
-
     private bool recargando = false;
+    private PhotonView vistaJugador;
+
+    private void Awake()
+    {
+        vistaJugador = GetComponentInParent<PhotonView>();
+    }
+
+    private bool EsJugadorLocal()
+    {
+        if (!PhotonNetwork.InRoom)
+            return true;
+
+        return vistaJugador != null && vistaJugador.IsMine;
+    }
 
     private void Start()
     {
+        if (!EsJugadorLocal())
+            return;
+
         ActualizarUI();
     }
 
@@ -40,19 +57,29 @@ public class MunicionArma : MonoBehaviour
                !recargando;
     }
 
+    // Llamado desde el Animation Event
     public void GastarBala()
     {
+        // No generar balas desde jugadores remotos.
+        if (!EsJugadorLocal())
+            return;
 
         if (!PuedeDisparar())
+            return;
+
+        if (bala == null || spawnPoint == null)
         {
+            Debug.LogError(
+                "Falta asignar Bala o SpawnPoint.",
+                this
+            );
             return;
         }
 
         cargadorActual--;
-
-
         ActualizarUI();
 
+        // La bala es local al jugador que dispara.
         GameObject nuevaBala = Instantiate(
             bala,
             spawnPoint.position,
@@ -61,7 +88,11 @@ public class MunicionArma : MonoBehaviour
 
         if (efectoDisparo != null)
         {
-            efectoDisparo.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            efectoDisparo.Stop(
+                true,
+                ParticleSystemStopBehavior.StopEmittingAndClear
+            );
+
             efectoDisparo.Play();
         }
 
@@ -69,11 +100,16 @@ public class MunicionArma : MonoBehaviour
 
         if (rb != null)
         {
-            rb.linearVelocity = spawnPoint.forward * velocidadBala;
+            rb.linearVelocity =
+                spawnPoint.forward * velocidadBala;
         }
     }
+
     public void IniciarRecarga()
     {
+        if (!EsJugadorLocal())
+            return;
+
         if (cargadorActual > 0)
             return;
 
@@ -83,10 +119,14 @@ public class MunicionArma : MonoBehaviour
         recargando = true;
     }
 
+    // También puede llamarse desde Animation Event
     public void Recargar()
     {
+        if (!EsJugadorLocal())
+            return;
 
-        int balasNecesarias = capacidadCargador - cargadorActual;
+        int balasNecesarias =
+            capacidadCargador - cargadorActual;
 
         int balasARecargar = Mathf.Min(
             balasNecesarias,
@@ -97,11 +137,14 @@ public class MunicionArma : MonoBehaviour
         municionAlmacenada -= balasARecargar;
 
         recargando = false;
-
         ActualizarUI();
     }
+
     private void ActualizarUI()
     {
+        if (!EsJugadorLocal())
+            return;
+
         if (textoCargador != null)
             textoCargador.text = cargadorActual.ToString();
 

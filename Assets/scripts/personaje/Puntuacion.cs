@@ -24,6 +24,11 @@ public class Puntuacion : MonoBehaviour
         ActualizarUI();
     }
 
+    public void AsignarArmaJugador(armaController armaLocal)
+    {
+        armaController = armaLocal;
+    }
+
     private void ActualizarUI()
     {
         if (textoPuntuacion != null)

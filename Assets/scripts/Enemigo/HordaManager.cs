@@ -1,13 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
+using Photon.Pun;
 
-public class HordaManager : MonoBehaviour
+public class HordaManager : MonoBehaviourPunCallbacks
 {
-    public enum Dificultad { Facil, Normal, Dificil, Pesadilla }
+    public enum Dificultad
+    {
+        Facil = 0,
+        Dificil = 1
+    }
 
     [Header("Dificultad")]
-    [SerializeField] private Dificultad dificultadActual = Dificultad.Normal;
+    private Dificultad dificultadActual;
 
     [Header("Enemigo Prefab")]
     [SerializeField] private GameObject enemigoPrefab;
@@ -25,7 +31,7 @@ public class HordaManager : MonoBehaviour
     [Header("Stats Base del Zombie")]
     [SerializeField] private int vidaBaseZombie = 50;
     [SerializeField] private int vidaExtraPorBloque = 25;
-    [SerializeField] private int dañoBaseZombie = 10;
+    [SerializeField] private int dañoBaseZombie = 5;
 
     [Header("Interfaz y Audio")]
     [SerializeField] private HordaHUD hordaHUD;
@@ -33,44 +39,89 @@ public class HordaManager : MonoBehaviour
     [SerializeField] private AudioClip sonidoInicioRonda;
     [SerializeField] private AudioClip sonidoFinRonda;
 
-    // Control interno de la horda
-    private List<GameObject> enemigosVivosEnMapa = new List<GameObject>();
+    private List<GameObject> enemigosVivosEnMapa =
+        new List<GameObject>();
+
     private int waveActual = 0;
     private int enemigosPendientesPorSpawnear = 0;
     private int totalEnemigosRestantesRonda = 0;
     private bool waveEnProgreso = false;
-    
+
+    private bool EsAutoridad()
+    {
+        return !PhotonNetwork.InRoom ||
+               PhotonNetwork.IsMasterClient;
+    }
 
     private void Start()
     {
-        if (hordaHUD == null) hordaHUD = FindFirstObjectByType<HordaHUD>();
-        if (audioSource == null) audioSource = GetComponent<AudioSource>();
+        if (hordaHUD == null)
+            hordaHUD = FindFirstObjectByType<HordaHUD>();
+
+        if (audioSource == null)
+            audioSource = GetComponent<AudioSource>();
+
+        if (SelectorPartida.Dificultad == 0)
+        {
+            dificultadActual = Dificultad.Facil;
+            Debug.Log("Dificultad: FÁCIL");
+        }
+        else
+        {
+            dificultadActual = Dificultad.Dificil;
+            Debug.Log("Dificultad: DIFÍCIL");
+        }
+
+        // Solo el Master Client genera hordas.
+        if (!EsAutoridad())
+        {
+            Debug.Log(
+                "Cliente secundario: esperando zombis de Photon."
+            );
+            return;
+        }
+
+        if (PhotonNetwork.InRoom)
+        {
+            Debug.Log(
+                "Master Client: controlando las hordas."
+            );
+        }
 
         StartCoroutine(StartNextWave());
     }
 
     private IEnumerator StartNextWave()
     {
+        if (!EsAutoridad())
+            yield break;
+
         waveEnProgreso = false;
+
         yield return new WaitForSeconds(tiempoEntreWaves);
+
+        if (!EsAutoridad())
+            yield break;
 
         waveActual++;
         waveEnProgreso = true;
 
-        if (audioSource != null && sonidoInicioRonda != null)
+        if (audioSource != null &&
+            sonidoInicioRonda != null)
         {
             audioSource.PlayOneShot(sonidoInicioRonda);
         }
 
-        int totalEnemigosOleada = CalcularCantidadZombies();
-        enemigosPendientesPorSpawnear = totalEnemigosOleada;
-        totalEnemigosRestantesRonda = totalEnemigosOleada;
+        int totalEnemigosOleada =
+            CalcularCantidadZombies();
 
-        if (hordaHUD != null)
-        {
-            hordaHUD.ActualizarRonda(waveActual);
-            hordaHUD.ActualizarEnemigosRestantes(totalEnemigosRestantesRonda);
-        }
+        enemigosPendientesPorSpawnear =
+            totalEnemigosOleada;
+
+        totalEnemigosRestantesRonda =
+            totalEnemigosOleada;
+
+        SincronizarHUD();
 
         StartCoroutine(GestorDeSpawn());
     }
@@ -79,11 +130,29 @@ public class HordaManager : MonoBehaviour
     {
         while (enemigosPendientesPorSpawnear > 0)
         {
-            if (enemigosVivosEnMapa.Count < maxZombiesSimultaneos)
+            if (!EsAutoridad())
+                yield break;
+
+            enemigosVivosEnMapa.RemoveAll(
+                e => e == null
+            );
+
+            if (enemigosVivosEnMapa.Count <
+                maxZombiesSimultaneos)
             {
-                SpawnEnemy();
+                if (!SpawnEnemy())
+                {
+                    Debug.LogError(
+                        "No se pudo crear el zombie."
+                    );
+                    yield break;
+                }
+
                 enemigosPendientesPorSpawnear--;
-                yield return new WaitForSeconds(spawnDelay);
+
+                yield return new WaitForSeconds(
+                    spawnDelay
+                );
             }
             else
             {
@@ -92,60 +161,132 @@ public class HordaManager : MonoBehaviour
         }
     }
 
-   private void SpawnEnemy()
+    private bool SpawnEnemy()
     {
-        if (enemigoPrefab == null || spawnPoints == null || spawnPoints.Length == 0) return;
+        if (!EsAutoridad())
+            return false;
 
-        Transform spawnPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
+        if (enemigoPrefab == null ||
+            spawnPoints == null ||
+            spawnPoints.Length == 0)
+        {
+            Debug.LogError(
+                "Falta prefab o puntos de aparición."
+            );
+            return false;
+        }
 
-       Vector3 posicionSegura = spawnPoint.position;
-        // Busca el punto más cercano de la malla azul en un radio de 5 metros
-        if (UnityEngine.AI.NavMesh.SamplePosition(spawnPoint.position, out UnityEngine.AI.NavMeshHit hit, 5.0f, UnityEngine.AI.NavMesh.AllAreas))
+        Transform spawnPoint = spawnPoints[
+            Random.Range(0, spawnPoints.Length)
+        ];
+
+        Vector3 posicionSegura = spawnPoint.position;
+
+        if (NavMesh.SamplePosition(
+            spawnPoint.position,
+            out NavMeshHit hit,
+            5.0f,
+            NavMesh.AllAreas))
         {
             posicionSegura = hit.position;
         }
 
-        GameObject nuevoEnemigo = Instantiate(
-            enemigoPrefab,
-            posicionSegura,
-            spawnPoint.rotation
-        );
-        
-        // Forzar al agente a acoplarse
-        nuevoEnemigo.GetComponent<UnityEngine.AI.NavMeshAgent>().Warp(posicionSegura);
-
         int vidaCalculada = CalcularVidaZombie();
         int dañoCalculado = CalcularDañoZombie();
-        float velocidadCalculada = 3.5f;
+        float velocidadCalculada =
+            CalcularVelocidadZombie();
 
-        EnemigoController controller = nuevoEnemigo.GetComponent<EnemigoController>();
-        if (controller != null)
+        GameObject nuevoEnemigo;
+
+        if (PhotonNetwork.InRoom)
         {
-            controller.ConfigurarAtributos(vidaCalculada, dañoCalculado, velocidadCalculada, this, true);
+            // Estadísticas que recibe cada cliente.
+            object[] datosZombie =
+            {
+                vidaCalculada,
+                dañoCalculado,
+                velocidadCalculada
+            };
+
+            nuevoEnemigo =
+                PhotonNetwork.InstantiateRoomObject(
+                    enemigoPrefab.name,
+                    posicionSegura,
+                    spawnPoint.rotation,
+                    0,
+                    datosZombie
+                );
+        }
+        else
+        {
+            // Conservamos funcionamiento sin Photon.
+            nuevoEnemigo = Instantiate(
+                enemigoPrefab,
+                posicionSegura,
+                spawnPoint.rotation
+            );
+
+            EnemigoController controller =
+                nuevoEnemigo.GetComponent<EnemigoController>();
+
+            if (controller != null)
+            {
+                controller.ConfigurarAtributos(
+                    vidaCalculada,
+                    dañoCalculado,
+                    velocidadCalculada,
+                    this,
+                    true
+                );
+            }
+        }
+
+        if (nuevoEnemigo == null)
+            return false;
+
+        NavMeshAgent agente =
+            nuevoEnemigo.GetComponent<NavMeshAgent>();
+
+        if (agente != null &&
+            agente.enabled &&
+            agente.isOnNavMesh)
+        {
+            agente.Warp(posicionSegura);
         }
 
         enemigosVivosEnMapa.Add(nuevoEnemigo);
+
+        Debug.Log(
+            "Zombie generado en la ronda " + waveActual
+        );
+
+        return true;
     }
+
     public void EnemyDied(GameObject enemy)
     {
-        if (enemigosVivosEnMapa.Contains(enemy))
-        {
-            enemigosVivosEnMapa.Remove(enemy);
-        }
+        if (!EsAutoridad())
+            return;
 
-        totalEnemigosRestantesRonda--;
-        if (totalEnemigosRestantesRonda < 0) totalEnemigosRestantesRonda = 0;
+        if (!enemigosVivosEnMapa.Remove(enemy))
+            return;
 
-        if (hordaHUD != null)
-        {
-            hordaHUD.ActualizarEnemigosRestantes(totalEnemigosRestantesRonda);
-        }
+        totalEnemigosRestantesRonda =
+            Mathf.Max(
+                0,
+                totalEnemigosRestantesRonda - 1
+            );
 
-        if (enemigosPendientesPorSpawnear <= 0 && enemigosVivosEnMapa.Count == 0 && waveEnProgreso)
+        SincronizarHUD();
+
+        if (enemigosPendientesPorSpawnear <= 0 &&
+            enemigosVivosEnMapa.Count == 0 &&
+            waveEnProgreso)
         {
             waveEnProgreso = false;
 
-            if (audioSource != null && sonidoFinRonda != null)
+            if (audioSource != null &&
+                sonidoFinRonda != null)
             {
                 audioSource.PlayOneShot(sonidoFinRonda);
             }
@@ -156,7 +297,12 @@ public class HordaManager : MonoBehaviour
 
     private void Update()
     {
-        enemigosVivosEnMapa.RemoveAll(e => e == null);
+        if (!EsAutoridad())
+            return;
+
+        enemigosVivosEnMapa.RemoveAll(
+            e => e == null
+        );
     }
 
     private int CalcularCantidadZombies()
@@ -164,13 +310,18 @@ public class HordaManager : MonoBehaviour
         float multDificultad = dificultadActual switch
         {
             Dificultad.Facil => 0.8f,
-            Dificultad.Normal => 1.0f,
             Dificultad.Dificil => 1.3f,
-            Dificultad.Pesadilla => 1.6f,
-            _ => 1.0f
+            _ => 0.8f
         };
 
-        return Mathf.Max(1, Mathf.RoundToInt((baseEnemigosPorWave + (waveActual - 1) * incrementoPorRonda) * multDificultad));
+        return Mathf.Max(
+            1,
+            Mathf.RoundToInt(
+                (baseEnemigosPorWave +
+                (waveActual - 1) * incrementoPorRonda)
+                * multDificultad
+            )
+        );
     }
 
     private int CalcularVidaZombie()
@@ -178,32 +329,95 @@ public class HordaManager : MonoBehaviour
         float multDificultad = dificultadActual switch
         {
             Dificultad.Facil => 0.8f,
-            Dificultad.Normal => 1.0f,
             Dificultad.Dificil => 1.4f,
-            Dificultad.Pesadilla => 2.0f,
-            _ => 1.0f
+            _ => 0.8f
         };
 
-       int bloquesDeCinco = (waveActual - 1) / 5;
+        int bloquesDeCinco =
+            (waveActual - 1) / 5;
 
-        int vidaCalculada = Mathf.RoundToInt((vidaBaseZombie + (bloquesDeCinco * vidaExtraPorBloque)) * multDificultad);
-
-    return vidaCalculada;
+        return Mathf.RoundToInt(
+            (vidaBaseZombie +
+            bloquesDeCinco * vidaExtraPorBloque)
+            * multDificultad
+        );
     }
 
     private int CalcularDañoZombie()
     {
         float multDificultad = dificultadActual switch
         {
-            Dificultad.Facil => 0.7f,
-            Dificultad.Normal => 1.0f,
-            Dificultad.Dificil => 1.5f,
-            Dificultad.Pesadilla => 2.2f,
+            Dificultad.Facil => 1.0f,
+            Dificultad.Dificil => 3.0f,
             _ => 1.0f
         };
 
-        return Mathf.Max(1, Mathf.RoundToInt(dañoBaseZombie * multDificultad));
+        return Mathf.Max(
+            1,
+            Mathf.RoundToInt(
+                dañoBaseZombie * multDificultad
+            )
+        );
     }
 
-    public void EstablecerDificultad(Dificultad nuevaDificultad) => dificultadActual = nuevaDificultad;
+    private float CalcularVelocidadZombie()
+    {
+        return dificultadActual switch
+        {
+            Dificultad.Facil => 3.5f,
+            Dificultad.Dificil => 5f,
+            _ => 3.5f
+        };
+    }
+
+    public void EstablecerDificultad(
+        Dificultad nuevaDificultad)
+    {
+        dificultadActual = nuevaDificultad;
+    }
+
+    private void SincronizarHUD()
+    {
+        if (hordaHUD == null)
+            hordaHUD = FindFirstObjectByType<HordaHUD>();
+
+        // El líder actualiza su propia interfaz.
+        if (hordaHUD != null)
+        {
+            hordaHUD.ActualizarRonda(waveActual);
+
+            hordaHUD.ActualizarEnemigosRestantes(
+                totalEnemigosRestantesRonda
+            );
+        }
+
+        // Solo el Master Client envía los valores.
+        if (PhotonNetwork.InRoom &&
+            PhotonNetwork.IsMasterClient)
+        {
+            photonView.RPC(
+                nameof(RPC_ActualizarHUD),
+                RpcTarget.Others,
+                waveActual,
+                totalEnemigosRestantesRonda
+            );
+        }
+    }
+
+    [PunRPC]
+    private void RPC_ActualizarHUD(int ronda, int restantes)
+    {
+        // El invitado recibe los valores del líder.
+        waveActual = ronda;
+        totalEnemigosRestantesRonda = restantes;
+
+        if (hordaHUD == null)
+            hordaHUD = FindFirstObjectByType<HordaHUD>();
+
+        if (hordaHUD != null)
+        {
+            hordaHUD.ActualizarRonda(ronda);
+            hordaHUD.ActualizarEnemigosRestantes(restantes);
+        }
+    }
 }

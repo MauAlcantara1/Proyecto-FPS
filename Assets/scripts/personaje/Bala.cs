@@ -1,38 +1,67 @@
+
 using UnityEngine;
 
 public class BalaImpacto : MonoBehaviour
 {
+    [Header("Daño")]
+    [SerializeField] private int dañoBase = 25;
+
+    [Header("Efectos")]
     [SerializeField] private GameObject efectoImpacto;
     [SerializeField] private GameObject marcaImpacto;
 
+    private bool impactoProcesado = false;
+
     private void OnCollisionEnter(Collision collision)
     {
-        ContactPoint contacto = collision.GetContact(0);
+        // Evitar registrar dos impactos con la misma bala.
+        if (impactoProcesado)
+            return;
 
-        Quaternion rotacion = Quaternion.LookRotation(contacto.normal);
+        impactoProcesado = true;
 
-        // Partícula de impacto
-        if (efectoImpacto != null)
+        // Buscar el zombi, incluso si golpeamos
+        // un collider hijo, como la cabeza.
+        EnemigoController zombie =
+            collision.collider.GetComponentInParent<EnemigoController>();
+
+        if (zombie != null)
         {
-            GameObject impacto = Instantiate(
-                efectoImpacto,
-                contacto.point,
-                rotacion
+            zombie.RecibirImpacto(
+                dañoBase,
+                collision.collider
             );
-
-            Destroy(impacto, 2f);
         }
 
-        // Marca de impacto
-        if (marcaImpacto != null)
+        if (collision.contactCount > 0)
         {
-            GameObject marca = Instantiate(
-                marcaImpacto,
-                contacto.point + contacto.normal * 0.001f,
-                rotacion
-            );
+            ContactPoint contacto = collision.GetContact(0);
 
-            Destroy(marca, 10f);
+            Quaternion rotacion =
+                Quaternion.LookRotation(contacto.normal);
+
+            if (efectoImpacto != null)
+            {
+                GameObject impacto = Instantiate(
+                    efectoImpacto,
+                    contacto.point,
+                    rotacion
+                );
+
+                Destroy(impacto, 2f);
+            }
+
+            if (marcaImpacto != null)
+            {
+                GameObject marca = Instantiate(
+                    marcaImpacto,
+                    contacto.point +
+                    contacto.normal * 0.001f,
+                    rotacion
+                );
+
+                Destroy(marca, 10f);
+            }
         }
 
         Destroy(gameObject);

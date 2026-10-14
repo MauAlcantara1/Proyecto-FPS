@@ -6,7 +6,7 @@ public class ZonaCompra : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Jugador"))
+        if (other.CompareTag("Player"))
         {
             if (puntuacionManager != null)
                 puntuacionManager.EntrarZonaCompra();
@@ -15,7 +15,7 @@ public class ZonaCompra : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Jugador"))
+        if (other.CompareTag("Player"))
         {
             if (puntuacionManager != null)
                 puntuacionManager.SalirZonaCompra();

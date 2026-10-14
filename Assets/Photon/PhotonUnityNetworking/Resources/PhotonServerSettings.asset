@@ -40,6 +40,12 @@ MonoBehaviour:
   - DestroySpaceship
   - Fire
   - RespawnSpaceship
+  - "RPC_RecibirDa\xF1o"
+  - RPC_SincronizarVida
+  - RPC_ActualizarHUD
+  - RPC_Morir
+  - "RPC_SolicitarDa\xF1o"
+  - RPC_DarPuntos
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 0

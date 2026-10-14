@@ -1821,7 +1821,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2, y: 2, z: 2}
+  m_LocalScale: {x: 1.7, y: 1.7, z: 1.7}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3095270377931777224}
@@ -1952,7 +1952,7 @@ MonoBehaviour:
   esZombiDeHorda: 0
   vidaMaxima: 100
   puntuacion: {fileID: 0}
-  velocidad: 7
+  velocidad: 8
   rango: 20
   "da\xF1oAtaque": 10
   distanciaAtaque: 2
@@ -1977,7 +1977,7 @@ AudioSource:
   m_GameObject: {fileID: 4493914613880827488}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: -5567922255417474408, guid: a718e94c9582c57469b2e169e9335d0b, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1
