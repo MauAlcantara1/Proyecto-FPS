@@ -2,7 +2,6 @@
   <Project Path="PhotonRealtime.csproj" />
   <Project Path="PhotonUnityNetworking.Editor.csproj" />
   <Project Path="PhotonUnityNetworking.csproj" />
-  <Project Path="Alebardium.BloodlinesUI.csproj" />
   <Project Path="Assembly-CSharp.csproj" />
   <Project Path="PhotonUnityNetworking.Demos.csproj" />
   <Project Path="HeyHeyThere.PSXHorrorUIFree.csproj" />
