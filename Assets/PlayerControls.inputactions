@@ -95,6 +95,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Pausa",
+                    "type": "Button",
+                    "id": "33ccb02f-773d-4335-b1c6-f6f3a1bb0b8e",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -156,7 +165,7 @@
                 {
                     "name": "",
                     "id": "1096bd8b-4cdd-489e-ac98-957c30edcb97",
-                    "path": "<Gamepad>/leftStick",
+                    "path": "<XInputController>/leftStick",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -266,7 +275,7 @@
                 {
                     "name": "",
                     "id": "bde7048d-e1bd-45c7-b089-8f0f23cd3f73",
-                    "path": "",
+                    "path": "<XInputController>/buttonWest",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -288,7 +297,7 @@
                 {
                     "name": "",
                     "id": "7cf052ef-cf90-492f-a562-1dbc53baefc1",
-                    "path": "",
+                    "path": "<XInputController>/buttonNorth",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -300,6 +309,17 @@
                     "name": "",
                     "id": "4326d7b8-ab39-43ce-bbf9-4504da16b624",
                     "path": "<Keyboard>/f",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ApagarLinterna",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f236c09b-cc88-45ad-9137-03f443e59aa0",
+                    "path": "<XInputController>/dpad/up",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -321,7 +341,7 @@
                 {
                     "name": "",
                     "id": "cb568927-25b5-4ad5-bb08-d912c0b6fb44",
-                    "path": "",
+                    "path": "<XInputController>/buttonEast",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -343,11 +363,33 @@
                 {
                     "name": "",
                     "id": "53ffcc1a-8eb4-4a42-8fe6-da3487499bb8",
-                    "path": "",
+                    "path": "<XInputController>/leftTrigger",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "Comprar",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "5296d2e1-e2bb-44c2-87fc-b225163c65fa",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Pausa",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ef4ef5f4-9efc-4a1b-8ad0-5dc74a3f1ec8",
+                    "path": "<XInputController>/start",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Pausa",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

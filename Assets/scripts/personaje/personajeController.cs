@@ -24,7 +24,7 @@ public class personajeController : MonoBehaviour
     private Vector2 movimientoInput;
     private bool saltar;
     private bool correr;
-
+    private bool pausa;
     private Vector3 velocidadVertical;
 
 
@@ -81,6 +81,11 @@ public class personajeController : MonoBehaviour
     {
         correr = context.ReadValueAsButton();
     }
+
+    public void Pausa(InputAction.CallbackContext context)
+    {
+        pausa = context.ReadValueAsButton();
+    } //crear funcion para pausa
 
 
 
