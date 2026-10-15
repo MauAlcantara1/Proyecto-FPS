@@ -1,9 +1,12 @@
-using System.Collections; // <--- Corroborado para solucionar CS0246 (IEnumerator)
-using UnityEngine;
-using TMPro;
-using UnityEngine.UI; 
 
-public class personajeVida : MonoBehaviour
+using System.Collections;
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+using Photon.Pun;
+
+[RequireComponent(typeof(PhotonView))]
+public class personajeVida : MonoBehaviourPun
 {
     [Header("UI TextMeshPro")]
     [SerializeField] private TMP_Text textoVida;
@@ -17,68 +20,166 @@ public class personajeVida : MonoBehaviour
     private float siguienteTiempoDaño = 0f;
 
     [Header("Imagenes Vida")]
-    [SerializeField] private Image imagenVida; 
+    [SerializeField] private Image imagenVida;
     [SerializeField] private Sprite spriteVidaLlena;
     [SerializeField] private Sprite spriteVidaMedia;
     [SerializeField] private Sprite spriteVidaBaja;
 
     [Header("Sistema de Botiquín")]
     [SerializeField] private int cantidadBotiquines = 1;
-    [SerializeField] private float tiempoCuracion = 3f; 
-    [SerializeField] private Slider barraProgresoCuracion; 
-    [SerializeField] private GameObject panelCuracionUI; 
-    
+    [SerializeField] private float tiempoCuracion = 3f;
+    [SerializeField] private Slider barraProgresoCuracion;
+    [SerializeField] private GameObject panelCuracionUI;
+
     private bool estaCurandose = false;
     private Coroutine corrutinaCuracion;
 
-    void Start()
+    private bool EsJugadorLocal()
     {
-        if (panelCuracionUI != null) panelCuracionUI.SetActive(false);
-        if (barraProgresoCuracion != null) barraProgresoCuracion.value = 0f;
-        
+        return !PhotonNetwork.InRoom || photonView.IsMine;
+    }
+
+    private void Start()
+    {
+        if (!EsJugadorLocal())
+            return;
+
+        if (panelCuracionUI != null)
+            panelCuracionUI.SetActive(false);
+
+        if (barraProgresoCuracion != null)
+            barraProgresoCuracion.value = 0f;
+
         ActualizarInterfaz();
     }
 
-    private void OnTriggerEnter(Collider other)
+    // Asignar la interfaz del jugador local
+    // desde el PhotonManager.
+    public void AsignarInterfaz(
+        TMP_Text texto,
+        Image imagen,
+        Slider barraCuracion,
+        GameObject panelCuracion)
     {
-        if (other.CompareTag("Enemigo"))
-        {
-            RecibirDaño(5);
-        }
+        if (!EsJugadorLocal())
+            return;
+
+        textoVida = texto;
+        imagenVida = imagen;
+        barraProgresoCuracion = barraCuracion;
+        panelCuracionUI = panelCuracion;
+
+        if (panelCuracionUI != null)
+            panelCuracionUI.SetActive(false);
+
+        if (barraProgresoCuracion != null)
+            barraProgresoCuracion.value = 0f;
+
+        ActualizarInterfaz();
     }
 
-    private void OnTriggerStay(Collider other)
+    public bool EstaVivo()
     {
-        if (other.CompareTag("Enemigo"))
-        {
-            RecibirDaño(5);
-        }
+        return vidaActual > 0;
     }
 
     public void RecibirDaño(int cantidad)
     {
-        if (Time.time < siguienteTiempoDaño) return;
+        if (cantidad <= 0)
+            return;
 
-        siguienteTiempoDaño = Time.time + segundosInmunidad;
-
-        if (estaCurandose)
+        if (!PhotonNetwork.InRoom)
         {
-            CancelarCuracion();
+            AplicarDaño(cantidad);
+            return;
         }
 
-        vidaActual -= cantidad;
-        vidaActual = Mathf.Clamp(vidaActual, 0, vidaMaxima);
-
-        ActualizarInterfaz();
+        if (photonView.IsMine)
+        {
+            AplicarDaño(cantidad);
+        }
+        else if (photonView.Owner != null)
+        {
+            photonView.RPC(
+                nameof(RPC_RecibirDaño),
+                photonView.Owner,
+                cantidad
+            );
+        }
     }
 
-    // --- LÓGICA DEL BOTIQUÍN ---
+    [PunRPC]
+    private void RPC_RecibirDaño(int cantidad)
+    {
+        if (!photonView.IsMine)
+            return;
+
+        AplicarDaño(cantidad);
+    }
+
+    private void AplicarDaño(int cantidad)
+    {
+        if (!EstaVivo())
+            return;
+
+        if (Time.time < siguienteTiempoDaño)
+            return;
+
+        siguienteTiempoDaño =
+            Time.time + segundosInmunidad;
+
+        if (estaCurandose)
+            CancelarCuracion();
+
+        vidaActual = Mathf.Clamp(
+            vidaActual - cantidad,
+            0,
+            vidaMaxima
+        );
+
+        ActualizarInterfaz();
+        SincronizarVida();
+    }
+
+    private void SincronizarVida()
+    {
+        if (!PhotonNetwork.InRoom || !photonView.IsMine)
+            return;
+
+        photonView.RPC(
+            nameof(RPC_SincronizarVida),
+            RpcTarget.Others,
+            vidaActual
+        );
+    }
+
+    [PunRPC]
+    private void RPC_SincronizarVida(int nuevaVida)
+    {
+        if (photonView.IsMine)
+            return;
+
+        vidaActual = Mathf.Clamp(
+            nuevaVida,
+            0,
+            vidaMaxima
+        );
+    }
+
+    // SISTEMA DE BOTIQUIN
 
     public void IniciarCuracion()
     {
-        if (cantidadBotiquines > 0 && !estaCurandose && vidaActual < vidaMaxima)
+        if (!EsJugadorLocal())
+            return;
+
+        if (cantidadBotiquines > 0 &&
+            !estaCurandose &&
+            EstaVivo() &&
+            vidaActual < vidaMaxima)
         {
-            corrutinaCuracion = StartCoroutine(ProcesoCuracion());
+            corrutinaCuracion =
+                StartCoroutine(ProcesoCuracion());
         }
     }
 
@@ -87,17 +188,24 @@ public class personajeVida : MonoBehaviour
         if (estaCurandose && corrutinaCuracion != null)
         {
             StopCoroutine(corrutinaCuracion);
+
+            corrutinaCuracion = null;
             estaCurandose = false;
 
-            if (panelCuracionUI != null) panelCuracionUI.SetActive(false);
-            if (barraProgresoCuracion != null) barraProgresoCuracion.value = 0f;
+            if (panelCuracionUI != null)
+                panelCuracionUI.SetActive(false);
+
+            if (barraProgresoCuracion != null)
+                barraProgresoCuracion.value = 0f;
         }
     }
 
     private IEnumerator ProcesoCuracion()
     {
         estaCurandose = true;
-        if (panelCuracionUI != null) panelCuracionUI.SetActive(true);
+
+        if (panelCuracionUI != null)
+            panelCuracionUI.SetActive(true);
 
         float tiempoTranscurrido = 0f;
 
@@ -107,52 +215,100 @@ public class personajeVida : MonoBehaviour
 
             if (barraProgresoCuracion != null)
             {
-                barraProgresoCuracion.value = tiempoTranscurrido / tiempoCuracion;
+                barraProgresoCuracion.value =
+                    tiempoTranscurrido / tiempoCuracion;
             }
 
             yield return null;
         }
 
-        // Cura el 80% de la salud faltante estilo Left 4 Dead
         int vidaFaltante = vidaMaxima - vidaActual;
-        int cantidadACurar = Mathf.RoundToInt(vidaFaltante * 0.80f); 
 
-        if (cantidadACurar < 1) cantidadACurar = 1;
+        int cantidadACurar = Mathf.RoundToInt(
+            vidaFaltante * 0.80f
+        );
 
-        vidaActual = Mathf.Clamp(vidaActual + cantidadACurar, 0, vidaMaxima);
+        if (cantidadACurar < 1)
+            cantidadACurar = 1;
+
+        vidaActual = Mathf.Clamp(
+            vidaActual + cantidadACurar,
+            0,
+            vidaMaxima
+        );
+
         cantidadBotiquines--;
 
         estaCurandose = false;
-        if (barraProgresoCuracion != null) barraProgresoCuracion.value = 0f;
-        if (panelCuracionUI != null) panelCuracionUI.SetActive(false);
+        corrutinaCuracion = null;
+
+        if (barraProgresoCuracion != null)
+            barraProgresoCuracion.value = 0f;
+
+        if (panelCuracionUI != null)
+            panelCuracionUI.SetActive(false);
 
         ActualizarInterfaz();
+        SincronizarVida();
     }
 
     private void ActualizarInterfaz()
     {
-        textoVida.SetText(" + {0}", vidaActual);
+        if (!EsJugadorLocal())
+            return;
+
+        if (textoVida != null)
+        {
+            textoVida.SetText(" + {0}", vidaActual);
+        }
+        else
+        {
+            Debug.LogWarning(
+                "No está asignado textoVida en el jugador local.",
+                this
+            );
+        }
+
         ActualizarColorVida();
     }
 
     private void ActualizarColorVida()
     {
-        if (vidaActual >= 80)
+        if (!EsJugadorLocal())
+            return;
+
+        Color nuevoColor;
+        Sprite nuevoSprite;
+
+        float porcentajeVida = vidaMaxima > 0
+            ? (float)vidaActual / vidaMaxima
+            : 0f;
+
+        if (porcentajeVida >= 0.8f)
         {
-            textoVida.color = new Color(0.54f, 1f, 0.53f);
-            imagenVida.sprite = spriteVidaLlena;
+            nuevoColor = new Color(0.54f, 1f, 0.53f);
+            nuevoSprite = spriteVidaLlena;
         }
-        else if (vidaActual >= 40)
+        else if (porcentajeVida >= 0.4f)
         {
-            textoVida.color = new Color(1f, 0.5f, 0f); 
-            imagenVida.sprite = spriteVidaMedia;
+            nuevoColor = new Color(1f, 0.5f, 0f);
+            nuevoSprite = spriteVidaMedia;
         }
         else
         {
-            textoVida.color = Color.red;
-            imagenVida.sprite = spriteVidaBaja;
+            nuevoColor = Color.red;
+            nuevoSprite = spriteVidaBaja;
         }
+
+        if (textoVida != null)
+            textoVida.color = nuevoColor;
+
+        if (imagenVida != null)
+            imagenVida.sprite = nuevoSprite;
     }
 
-    public bool EstaCurandose() => estaCurandose;
+    public bool EstaCurandose()
+    {
+        return estaCurandose;
+    }
 }

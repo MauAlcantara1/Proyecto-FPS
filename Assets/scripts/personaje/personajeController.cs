@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Photon.Pun;
 
 public class personajeController : MonoBehaviour
 {
@@ -31,15 +32,53 @@ public class personajeController : MonoBehaviour
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
-        #if UNITY_EDITOR
-            Application.targetFrameRate = 60;
-            QualitySettings.vSyncCount = 0;
-        #endif
+
+        vistaJugador = GetComponentInParent<PhotonView>();
+
+    #if UNITY_EDITOR
+        Application.targetFrameRate = 60;
+        QualitySettings.vSyncCount = 0;
+    #endif
     }
 
+    private void Start()
+    {
+        if (!EsJugadorLocal())
+            return;
+
+        // Buscar la puntuación del HUD local.
+        puntuacion = FindFirstObjectByType<Puntuacion>();
+
+        if (puntuacion == null)
+        {
+            Debug.LogError(
+                "No se encontró Puntuacion en la escena."
+            );
+            return;
+        }
+
+        // Buscar el controlador de armas del jugador.
+        armaController armas =
+            GetComponentInChildren<armaController>(true);
+
+        if (armas == null)
+        {
+            Debug.LogError(
+                "No se encontró armaController en JugadorOnline."
+            );
+            return;
+        }
+
+        puntuacion.AsignarArmaJugador(armas);
+
+        Debug.Log("Puntuación y armas locales conectadas.");
+    } 
 
     private void Update()
     {
+        if (!EsJugadorLocal())
+        return;
+
         if (saludJugador != null && saludJugador.EstaCurandose())
         {
             if (movimientoInput.magnitude > 0.1f || saltar)
@@ -53,6 +92,14 @@ public class personajeController : MonoBehaviour
 
     }
 
+    private PhotonView vistaJugador;
+
+    private bool EsJugadorLocal()
+    {
+        return !PhotonNetwork.InRoom ||
+            (vistaJugador != null && vistaJugador.IsMine);
+    }
+
 
     public void Movimiento(InputAction.CallbackContext context)
     {
@@ -63,6 +110,8 @@ public class personajeController : MonoBehaviour
 
     public void Linterna(InputAction.CallbackContext context)
     {
+        if (!EsJugadorLocal())
+        return;
         if (context.performed)
         {
             linterna.SetActive(!linterna.activeSelf);
@@ -71,6 +120,9 @@ public class personajeController : MonoBehaviour
     
     public void Salto(InputAction.CallbackContext context)
     {
+        if (!EsJugadorLocal())
+        return;
+
         if(context.performed)
         {
             saltar = true;
@@ -79,6 +131,9 @@ public class personajeController : MonoBehaviour
 
     public void Correr(InputAction.CallbackContext context)
     {
+        if (!EsJugadorLocal())
+        return;
+
         correr = context.ReadValueAsButton();
     }
 
@@ -162,6 +217,8 @@ public class personajeController : MonoBehaviour
 
     public void Curar(InputAction.CallbackContext context)
     {
+        if (!EsJugadorLocal())
+        return;
         if (saludJugador == null) return;
 
         // Al PRESIONAR la tecla -> Inicia la curación
@@ -176,11 +233,24 @@ public class personajeController : MonoBehaviour
         }
     }
 
+   
     public void comprar(InputAction.CallbackContext context)
     {
+        if (!EsJugadorLocal())
+            return;
+
         if (!context.performed)
             return;
 
+        if (puntuacion == null)
+        {
+            Debug.LogError(
+                "No hay una referencia de Puntuacion."
+            );
+            return;
+        }
+
         puntuacion.ComprarArma();
     }
+
 }

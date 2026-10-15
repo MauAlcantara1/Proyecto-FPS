@@ -21,7 +21,6 @@ public class armaController : MonoBehaviour
     [SerializeField] private GameObject pistola;
     [SerializeField] private GameObject fusil;
     [SerializeField] private GameObject uzi;
-    private int balas = 0;
 
     [Header("Segunda arma")]
     [SerializeField] private GameObject segundaArma;
