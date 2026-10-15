@@ -9,42 +9,61 @@ public class personajeController : MonoBehaviour
     [SerializeField] private float velocidadCorrer = 7f;
     [SerializeField] private float fuerzaSalto = 3f;
     [SerializeField] private float gravedad = -9.81f;
+
+    [Header("Audio")]
     [SerializeField] private AudioSource audioSource;
     [SerializeField] public AudioClip pasosCaminar;
     [SerializeField] public AudioClip pasosCorrer;
+
+    [Header("Referencias")]
     [SerializeField] public Animator animator;
     [SerializeField] private GameObject linterna;
     [SerializeField] private Puntuacion puntuacion;
+    [SerializeField] private personajeVida saludJugador;
 
-    
-    [SerializeField] private personajeVida saludJugador;   // <-- agregar esto
-
+    [Header("Pausa")]
+    [SerializeField] private GameObject panelPausa;
 
     private CharacterController controller;
+    private PhotonView vistaJugador;
 
     private Vector2 movimientoInput;
+    private Vector3 velocidadVertical;
+
     private bool saltar;
     private bool correr;
     private bool pausa;
-    private Vector3 velocidadVertical;
-
 
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
-
         vistaJugador = GetComponentInParent<PhotonView>();
 
-    #if UNITY_EDITOR
+#if UNITY_EDITOR
         Application.targetFrameRate = 60;
         QualitySettings.vSyncCount = 0;
-    #endif
+#endif
     }
 
     private void Start()
     {
         if (!EsJugadorLocal())
             return;
+
+        // El juego comienza sin pausa.
+        pausa = false;
+        Time.timeScale = 1f;
+
+        if (panelPausa != null)
+        {
+            panelPausa.SetActive(false);
+        }
+        else
+        {
+            Debug.LogWarning(
+                "No se ha asignado PanelPausa en el Inspector."
+            );
+        }
 
         // Buscar la puntuación del HUD local.
         puntuacion = FindFirstObjectByType<Puntuacion>();
@@ -72,12 +91,16 @@ public class personajeController : MonoBehaviour
         puntuacion.AsignarArmaJugador(armas);
 
         Debug.Log("Puntuación y armas locales conectadas.");
-    } 
+    }
 
     private void Update()
     {
         if (!EsJugadorLocal())
-        return;
+            return;
+
+        // No procesar el movimiento mientras está pausado.
+        if (pausa)
+            return;
 
         if (saludJugador != null && saludJugador.EstaCurandose())
         {
@@ -86,13 +109,11 @@ public class personajeController : MonoBehaviour
                 saludJugador.CancelarCuracion();
             }
         }
+
         MoverJugador();
         AplicarGravedad();
         SonidosPasos();
-
     }
-
-    private PhotonView vistaJugador;
 
     private bool EsJugadorLocal()
     {
@@ -100,30 +121,31 @@ public class personajeController : MonoBehaviour
             (vistaJugador != null && vistaJugador.IsMine);
     }
 
-
     public void Movimiento(InputAction.CallbackContext context)
     {
+        if (!EsJugadorLocal() || pausa)
+            return;
+
         movimientoInput = context.ReadValue<Vector2>();
-
     }
-
 
     public void Linterna(InputAction.CallbackContext context)
     {
-        if (!EsJugadorLocal())
-        return;
-        if (context.performed)
+        if (!EsJugadorLocal() || pausa)
+            return;
+
+        if (context.performed && linterna != null)
         {
             linterna.SetActive(!linterna.activeSelf);
         }
     }
-    
+
     public void Salto(InputAction.CallbackContext context)
     {
-        if (!EsJugadorLocal())
-        return;
+        if (!EsJugadorLocal() || pausa)
+            return;
 
-        if(context.performed)
+        if (context.performed)
         {
             saltar = true;
         }
@@ -131,18 +153,58 @@ public class personajeController : MonoBehaviour
 
     public void Correr(InputAction.CallbackContext context)
     {
-        if (!EsJugadorLocal())
-        return;
+        if (!EsJugadorLocal() || pausa)
+            return;
 
         correr = context.ReadValueAsButton();
     }
 
     public void Pausa(InputAction.CallbackContext context)
     {
-        pausa = context.ReadValueAsButton();
-    } //crear funcion para pausa
+        if (!EsJugadorLocal() || !context.performed)
+            return;
 
+        if (pausa)
+        {
+            ReanudarJuego();
+            return;
+        }
 
+        pausa = true;
+
+        if (panelPausa != null)
+        {
+            panelPausa.SetActive(true);
+        }
+
+        Time.timeScale = 0f;
+
+        // Limpiar los controles de movimiento.
+        movimientoInput = Vector2.zero;
+        saltar = false;
+        correr = false;
+
+        // Detener los sonidos de pasos.
+        if (audioSource != null && audioSource.isPlaying)
+        {
+            audioSource.Stop();
+        }
+    }
+
+    // Método para el botón Continuar del panel de pausa.
+    public void ReanudarJuego()
+    {
+        if (!EsJugadorLocal())
+            return;
+
+        pausa = false;
+        Time.timeScale = 1f;
+
+        if (panelPausa != null)
+        {
+            panelPausa.SetActive(false);
+        }
+    }
 
     private void MoverJugador()
     {
@@ -150,18 +212,15 @@ public class personajeController : MonoBehaviour
             transform.right * movimientoInput.x +
             transform.forward * movimientoInput.y;
 
-
         float velocidad = correr
             ? velocidadCorrer
             : velocidadCaminar;
-
 
         controller.Move(
             direccion * velocidad * Time.deltaTime
         );
 
-
-        if(controller.isGrounded && saltar)
+        if (controller.isGrounded && saltar)
         {
             velocidadVertical.y =
                 Mathf.Sqrt(fuerzaSalto * -2f * gravedad);
@@ -170,18 +229,14 @@ public class personajeController : MonoBehaviour
         }
     }
 
-
-
     private void AplicarGravedad()
     {
-        if(controller.isGrounded && velocidadVertical.y < 0)
+        if (controller.isGrounded && velocidadVertical.y < 0)
         {
             velocidadVertical.y = -2f;
         }
 
-
         velocidadVertical.y += gravedad * Time.deltaTime;
-
 
         controller.Move(
             velocidadVertical * Time.deltaTime
@@ -190,7 +245,11 @@ public class personajeController : MonoBehaviour
 
     private void SonidosPasos()
     {
-        if (!controller.isGrounded || movimientoInput.magnitude < 0.1f)
+        if (audioSource == null)
+            return;
+
+        if (!controller.isGrounded ||
+            movimientoInput.magnitude < 0.1f)
         {
             if (audioSource.isPlaying)
             {
@@ -217,26 +276,25 @@ public class personajeController : MonoBehaviour
 
     public void Curar(InputAction.CallbackContext context)
     {
-        if (!EsJugadorLocal())
-        return;
-        if (saludJugador == null) return;
+        if (!EsJugadorLocal() || pausa)
+            return;
 
-        // Al PRESIONAR la tecla -> Inicia la curación
+        if (saludJugador == null)
+            return;
+
         if (context.performed)
         {
             saludJugador.IniciarCuracion();
         }
-        // Al SOLTAR la tecla -> Cancela la curación
         else if (context.canceled)
         {
             saludJugador.CancelarCuracion();
         }
     }
 
-   
     public void comprar(InputAction.CallbackContext context)
     {
-        if (!EsJugadorLocal())
+        if (!EsJugadorLocal() || pausa)
             return;
 
         if (!context.performed)
@@ -253,4 +311,12 @@ public class personajeController : MonoBehaviour
         puntuacion.ComprarArma();
     }
 
+    private void OnDestroy()
+    {
+        // Restaurar el tiempo si se destruye al jugador pausado.
+        if (EsJugadorLocal() && pausa)
+        {
+            Time.timeScale = 1f;
+        }
+    }
 }
