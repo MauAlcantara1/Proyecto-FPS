@@ -1,14 +1,12 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class PunteroMenu : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
+public class PunteroMenu : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
 {
-    [Header("El triángulo de este botón")]
-    [Tooltip("Arrastra aquí el triángulo rojo que le corresponde a este botón")]
+    [Header("Puntero")]
     [SerializeField] private GameObject miPuntero;
 
     [Header("Sonidos de Interfaz")]
-    [Tooltip("Arrastra aquí el objeto que tiene el AudioSource (ej. tu AudioManager)")]
     [SerializeField] private AudioSource fuenteDeAudio;
     [SerializeField] private AudioClip sonidoHover;
     [SerializeField] private AudioClip sonidoClic;
@@ -36,11 +34,11 @@ public class PunteroMenu : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         if (miPuntero != null) miPuntero.SetActive(false);
     }
 
-    public void OnPointerClick(PointerEventData eventData)
-    {
-        if (fuenteDeAudio != null && sonidoClic != null)
+    public void OnPointerDown(PointerEventData eventData)
         {
-            fuenteDeAudio.PlayOneShot(sonidoClic);
+            if (fuenteDeAudio != null && sonidoClic != null)
+            {
+                fuenteDeAudio.PlayOneShot(sonidoClic);
+            }
         }
-    }
 }

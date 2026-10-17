@@ -2429,12 +2429,12 @@ GameObject:
   - component: {fileID: 829238759}
   - component: {fileID: 829238758}
   m_Layer: 0
-  m_Name: tuberia_rozando
+  m_Name: ambiente
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!82 &829238758
 AudioSource:
   m_ObjectHideFlags: 0
@@ -2446,9 +2446,9 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: -5567922255417474408, guid: a718e94c9582c57469b2e169e9335d0b, type: 2}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: 6c743dd6119383b40a24c6e31a014aa2, type: 3}
+  m_Resource: {fileID: 8300000, guid: 8380c97e3e2e25046a0e8902027f9f99, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.03
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -2782,7 +2782,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!82 &1010454570
 AudioSource:
   m_ObjectHideFlags: 0
@@ -2794,9 +2794,9 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 6632744635350497211, guid: a718e94c9582c57469b2e169e9335d0b, type: 2}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: ddb9bb5a14e073640bfff35e1f5b1a87, type: 3}
+  m_Resource: {fileID: 8300000, guid: 1cdcee2e6907a12448b65174c33aa02f, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.335
   m_Pitch: 1
   Loop: 1
   Mute: 0
