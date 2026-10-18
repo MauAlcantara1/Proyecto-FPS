@@ -1,3 +1,4 @@
+
 using TMPro;
 using UnityEngine;
 
@@ -13,8 +14,6 @@ public class PantallaInicio : MonoBehaviour
 
     private void Start()
     {
-        MostrarRecord();
-
         // Recuperar el nombre guardado anteriormente.
         if (inputNombre != null)
         {
@@ -23,16 +22,16 @@ public class PantallaInicio : MonoBehaviour
                 ""
             );
 
-            // Guardar automáticamente cuando termine de editar.
             inputNombre.onEndEdit.AddListener(
                 GuardarNombreDesdeInput
             );
         }
+
+        MostrarRecord();
     }
 
     private void OnDestroy()
     {
-        // Evitar dejar registrado el evento.
         if (inputNombre != null)
         {
             inputNombre.onEndEdit.RemoveListener(
@@ -44,19 +43,25 @@ public class PantallaInicio : MonoBehaviour
     public void MostrarRecord()
     {
         if (textoRecord == null)
+        {
             return;
+        }
 
-        int puntuacionMaxima =
-            PlayerPrefs.GetInt(CLAVE_RECORD, 0);
+        int puntuacionMaxima = PlayerPrefs.GetInt(
+            CLAVE_RECORD,
+            0
+        );
 
-        string nombreRecord =
-            PlayerPrefs.GetString(CLAVE_NOMBRE_RECORD, "Nadie");
+        string nombreRecord = PlayerPrefs.GetString(
+            CLAVE_NOMBRE_RECORD,
+            "Nadie"
+        );
 
         if (puntuacionMaxima > 0)
         {
             textoRecord.text =
-                "El record es de " + nombreRecord
-                + " por " + puntuacionMaxima;
+                "El récord es de " + nombreRecord
+                + " con " + puntuacionMaxima + " puntos";
         }
         else
         {
@@ -64,17 +69,19 @@ public class PantallaInicio : MonoBehaviour
         }
     }
 
-    // Se ejecuta al terminar de editar el Input Field.
     private void GuardarNombreDesdeInput(string nombre)
     {
         GuardarNombre(nombre);
     }
 
-    // Se conserva por si necesitas llamarlo desde otro script.
+    // Conectar este método al botón Jugar antes de cargar la partida.
     public void GuardarNombreJugador()
     {
         if (inputNombre == null)
+        {
+            Debug.LogWarning("No está asignado el campo del nombre.");
             return;
+        }
 
         GuardarNombre(inputNombre.text);
     }
@@ -83,7 +90,7 @@ public class PantallaInicio : MonoBehaviour
     {
         if (string.IsNullOrWhiteSpace(nombre))
         {
-            Debug.Log("Ingresa un nombre para jugar.");
+            Debug.LogWarning("Ingresa un nombre para jugar.");
             return;
         }
 
