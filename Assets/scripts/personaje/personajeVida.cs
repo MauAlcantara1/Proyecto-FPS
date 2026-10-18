@@ -58,8 +58,7 @@ public class personajeVida : MonoBehaviourPun
         ActualizarInterfaz();
     }
 
-    // Asignar la interfaz del jugador local
-    // desde el PhotonManager.
+    // Asignar la interfaz del jugador local desde PhotonManager.
     public void AsignarInterfaz(
         TMP_Text texto,
         Image imagen,
@@ -172,7 +171,7 @@ public class personajeVida : MonoBehaviourPun
         );
     }
 
-    // SISTEMA DE BOTIQUIN
+    // SISTEMA DE BOTIQUÍN
 
     public void IniciarCuracion()
     {
@@ -256,6 +255,24 @@ public class personajeVida : MonoBehaviourPun
 
         ActualizarInterfaz();
         SincronizarVida();
+    }
+
+    // NUEVO: permite comprar botiquines adicionales.
+    public bool ComprarBotiquines(int cantidad)
+    {
+        if (!EsJugadorLocal())
+            return false;
+
+        if (cantidad <= 0 || !EstaVivo())
+            return false;
+
+        cantidadBotiquines += cantidad;
+
+        Debug.Log(
+            "Botiquines disponibles: " + cantidadBotiquines
+        );
+
+        return true;
     }
 
     private void ActualizarInterfaz()

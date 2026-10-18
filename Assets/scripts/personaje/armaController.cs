@@ -1,3 +1,4 @@
+
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -27,10 +28,18 @@ public class armaController : MonoBehaviour
     [SerializeField] private GameObject UIseleccionadaUno;
     [SerializeField] private GameObject UIseleccionadaDos;
 
-
     [SerializeField] private bool primariaActiva = true;
     private bool disparando = false;
 
+    [Header("Desbloqueo")]
+    [SerializeField] private bool fusilDesbloqueado = false;
+
+    public bool FusilDesbloqueado => fusilDesbloqueado;
+
+    private void Awake()
+    {
+        controller = GetComponent<CharacterController>();
+    }
 
     private void Start()
     {
@@ -38,36 +47,37 @@ public class armaController : MonoBehaviour
         ActualizarAnimator();
     }
 
-    void Update()
+    private void Update()
     {
         if (!disparando)
             return;
 
         if (municionActual == null || !municionActual.PuedeDisparar())
         {
-            animatorActual.SetBool("Disparo", false);
-            disparando = false; // opcional: evita seguir chequeando hasta que vuelvas a presionar
+            if (animatorActual != null)
+                animatorActual.SetBool("Disparo", false);
+
+            disparando = false;
             return;
         }
 
-        animatorActual.SetBool("Disparo", true);
-    }
-
-    private void Awake()
-    {
-        controller = GetComponent<CharacterController>();
+        if (animatorActual != null)
+            animatorActual.SetBool("Disparo", true);
     }
 
     public void ActualizarArmaVisible()
     {
         if (pistola != null)
-            pistola.SetActive(primariaActiva && armaActiva == TipoArma.pistola);
+            pistola.SetActive(
+                primariaActiva && armaActiva == TipoArma.pistola);
 
         if (fusil != null)
-            fusil.SetActive(primariaActiva && armaActiva == TipoArma.fusil);
+            fusil.SetActive(
+                primariaActiva && armaActiva == TipoArma.fusil);
 
         if (uzi != null)
-            uzi.SetActive(primariaActiva && armaActiva == TipoArma.uzi);
+            uzi.SetActive(
+                primariaActiva && armaActiva == TipoArma.uzi);
 
         if (segundaArma != null)
             segundaArma.SetActive(!primariaActiva);
@@ -87,7 +97,9 @@ public class armaController : MonoBehaviour
         }
         else
         {
-            animatorActual = segundaArma.GetComponent<Animator>();
+            animatorActual = segundaArma != null
+                ? segundaArma.GetComponent<Animator>()
+                : null;
         }
 
         ActualizarMunicion();
@@ -99,31 +111,25 @@ public class armaController : MonoBehaviour
         {
             GameObject armaActual = ObtenerArmaPrimaria();
 
-            if (armaActual != null)
-                municionActual = armaActual.GetComponent<MunicionArma>();
+            municionActual = armaActual != null
+                ? armaActual.GetComponent<MunicionArma>()
+                : null;
         }
         else
         {
-            municionActual = segundaArma.GetComponent<MunicionArma>();
+            municionActual = segundaArma != null
+                ? segundaArma.GetComponent<MunicionArma>()
+                : null;
         }
     }
 
     private Animator ObtenerAnimatorArmaPrimaria()
     {
-        switch (armaActiva)
-        {
-            case TipoArma.pistola:
-                return pistola.GetComponent<Animator>();
+        GameObject armaActual = ObtenerArmaPrimaria();
 
-            case TipoArma.fusil:
-                return fusil.GetComponent<Animator>();
-
-            case TipoArma.uzi:
-                return uzi.GetComponent<Animator>();
-
-            default:
-                return null;
-        }
+        return armaActual != null
+            ? armaActual.GetComponent<Animator>()
+            : null;
     }
 
     private GameObject ObtenerArmaPrimaria()
@@ -146,10 +152,10 @@ public class armaController : MonoBehaviour
 
     public void Cambio(InputAction.CallbackContext context)
     {
-        if(context.performed)
+        if (context.performed && animatorActual != null)
         {
             animatorActual.SetTrigger("Cambio");
-            Debug.Log("cambio de arma armaController");
+            Debug.Log("Cambio de arma: armaController");
         }
     }
 
@@ -159,14 +165,22 @@ public class armaController : MonoBehaviour
             return;
 
         if (municionActual == null)
+        {
+            Debug.LogWarning("No hay un componente MunicionArma en el arma activa.");
             return;
+        }
 
+        // Permite recargar aunque queden balas en el cargador.
         if (!municionActual.PuedeRecargar())
+        {
+            Debug.Log("No se puede recargar: cargador lleno, sin reserva o recarga en curso.");
             return;
+        }
 
         municionActual.IniciarRecarga();
 
-        animatorActual.SetTrigger("Recarga");
+        if (animatorActual != null)
+            animatorActual.SetTrigger("Recarga");
     }
 
     public void Disparo(InputAction.CallbackContext context)
@@ -175,7 +189,9 @@ public class armaController : MonoBehaviour
         {
             if (!primariaActiva)
             {
-                animatorActual.SetTrigger("Disparo");
+                if (animatorActual != null)
+                    animatorActual.SetTrigger("Disparo");
+
                 return;
             }
 
@@ -184,14 +200,21 @@ public class armaController : MonoBehaviour
         else if (context.canceled)
         {
             disparando = false;
-            animatorActual.SetBool("Disparo", false);
+
+            if (animatorActual != null)
+                animatorActual.SetBool("Disparo", false);
         }
     }
 
     public void CambiarArma()
     {
         primariaActiva = !primariaActiva;
+
         Debug.Log("Cambio de arma2");
+
+        // Detiene el estado de disparo al cambiar de arma.
+        disparando = false;
+
         ActualizarArmaVisible();
         ActualizarAnimator();
 
@@ -207,16 +230,27 @@ public class armaController : MonoBehaviour
         return animatorActual;
     }
 
-    [SerializeField] private bool fusilDesbloqueado = false;
-
     public void DesbloquearFusil()
     {
         if (fusilDesbloqueado)
-            return; 
+        {
+            Debug.Log("El fusil ya está desbloqueado.");
+            return;
+        }
+
+        if (fusil == null)
+        {
+            Debug.LogError("No se ha asignado el objeto Fusil.");
+            return;
+        }
 
         fusilDesbloqueado = true;
         armaActiva = TipoArma.fusil;
+        primariaActiva = true;
+
         ActualizarArmaVisible();
         ActualizarAnimator();
+
+        Debug.Log("Fusil desbloqueado y equipado.");
     }
 }
