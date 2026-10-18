@@ -47,24 +47,42 @@ public class Puntuacion : MonoBehaviour
     private void ActualizarUI()
     {
         if (textoPuntuacion != null)
-        {
             textoPuntuacion.text = "  $ " + puntuacionActual;
-        }
     }
 
-    // Puntuación disponible para gastar.
     public int ObtenerPuntuacion()
     {
         return puntuacionActual;
     }
 
-    // Total acumulado durante la partida, sin restar las compras.
     public int ObtenerPuntuacionTotalPartida()
     {
         return puntuacionTotalPartida;
     }
 
-    // Guarda el récord cuando termina la partida.
+    public bool GastarPuntos(int cantidad)
+    {
+        if (cantidad <= 0 || puntuacionActual < cantidad)
+        {
+            Debug.Log("No tienes suficientes puntos.");
+            return false;
+        }
+
+        puntuacionActual -= cantidad;
+        ActualizarUI();
+
+        return true;
+    }
+
+    public void DevolverPuntos(int cantidad)
+    {
+        if (cantidad <= 0)
+            return;
+
+        puntuacionActual += cantidad;
+        ActualizarUI();
+    }
+
     public void RegistrarFinPartida()
     {
         if (partidaRegistrada)
@@ -97,23 +115,14 @@ public class Puntuacion : MonoBehaviour
                 nombreJugador
             );
 
-            PlayerPrefs.SetInt(
-                CLAVE_NUEVO_RECORD,
-                1
-            );
-
-            PlayerPrefs.Save();
-
-            Debug.Log(
-                "Nuevo récord: " + nombreJugador
-                + " - " + puntuacionTotalPartida
-            );
+            PlayerPrefs.SetInt(CLAVE_NUEVO_RECORD, 1);
         }
         else
         {
             PlayerPrefs.SetInt(CLAVE_NUEVO_RECORD, 0);
-            PlayerPrefs.Save();
         }
+
+        PlayerPrefs.Save();
     }
 
     public void EntrarZonaCompra()

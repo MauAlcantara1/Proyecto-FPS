@@ -1,3 +1,4 @@
+
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Photon.Pun;
@@ -24,6 +25,9 @@ public class personajeController : MonoBehaviour
     [Header("Pausa")]
     [SerializeField] private GameObject panelPausa;
 
+    [Header("Interfaz de compra")]
+    [SerializeField] private GameObject textoComprar;
+
     private CharacterController controller;
     private PhotonView vistaJugador;
 
@@ -33,6 +37,8 @@ public class personajeController : MonoBehaviour
     private bool saltar;
     private bool correr;
     private bool pausa;
+
+    private ZonaCompra zonaCompraActual;
 
     private void Awake()
     {
@@ -50,7 +56,6 @@ public class personajeController : MonoBehaviour
         if (!EsJugadorLocal())
             return;
 
-        // El juego comienza sin pausa.
         pausa = false;
         Time.timeScale = 1f;
 
@@ -61,30 +66,28 @@ public class personajeController : MonoBehaviour
         else
         {
             Debug.LogWarning(
-                "No se ha asignado PanelPausa en el Inspector."
-            );
+                "No se ha asignado PanelPausa en el Inspector.");
         }
 
-        // Buscar la puntuación del HUD local.
+        if (textoComprar != null)
+            textoComprar.SetActive(false);
+
         puntuacion = FindFirstObjectByType<Puntuacion>();
 
         if (puntuacion == null)
         {
             Debug.LogError(
-                "No se encontró Puntuacion en la escena."
-            );
+                "No se encontró Puntuacion en la escena.");
             return;
         }
 
-        // Buscar el controlador de armas del jugador.
         armaController armas =
             GetComponentInChildren<armaController>(true);
 
         if (armas == null)
         {
             Debug.LogError(
-                "No se encontró armaController en JugadorOnline."
-            );
+                "No se encontró armaController en JugadorOnline.");
             return;
         }
 
@@ -93,32 +96,29 @@ public class personajeController : MonoBehaviour
         Debug.Log("Puntuación y armas locales conectadas.");
     }
 
+    private bool EsJugadorLocal()
+    {
+        return !PhotonNetwork.InRoom ||
+            (vistaJugador != null && vistaJugador.IsMine);
+    }
+
     private void Update()
     {
         if (!EsJugadorLocal())
             return;
 
-        // No procesar el movimiento mientras está pausado.
         if (pausa)
             return;
 
         if (saludJugador != null && saludJugador.EstaCurandose())
         {
             if (movimientoInput.magnitude > 0.1f || saltar)
-            {
                 saludJugador.CancelarCuracion();
-            }
         }
 
         MoverJugador();
         AplicarGravedad();
         SonidosPasos();
-    }
-
-    private bool EsJugadorLocal()
-    {
-        return !PhotonNetwork.InRoom ||
-            (vistaJugador != null && vistaJugador.IsMine);
     }
 
     public void Movimiento(InputAction.CallbackContext context)
@@ -135,9 +135,7 @@ public class personajeController : MonoBehaviour
             return;
 
         if (context.performed && linterna != null)
-        {
             linterna.SetActive(!linterna.activeSelf);
-        }
     }
 
     public void Salto(InputAction.CallbackContext context)
@@ -146,9 +144,7 @@ public class personajeController : MonoBehaviour
             return;
 
         if (context.performed)
-        {
             saltar = true;
-        }
     }
 
     public void Correr(InputAction.CallbackContext context)
@@ -173,25 +169,18 @@ public class personajeController : MonoBehaviour
         pausa = true;
 
         if (panelPausa != null)
-        {
             panelPausa.SetActive(true);
-        }
 
         Time.timeScale = 0f;
 
-        // Limpiar los controles de movimiento.
         movimientoInput = Vector2.zero;
         saltar = false;
         correr = false;
 
-        // Detener los sonidos de pasos.
         if (audioSource != null && audioSource.isPlaying)
-        {
             audioSource.Stop();
-        }
     }
 
-    // Método para el botón Continuar del panel de pausa.
     public void ReanudarJuego()
     {
         if (!EsJugadorLocal())
@@ -201,13 +190,14 @@ public class personajeController : MonoBehaviour
         Time.timeScale = 1f;
 
         if (panelPausa != null)
-        {
             panelPausa.SetActive(false);
-        }
     }
 
     private void MoverJugador()
     {
+        if (controller == null)
+            return;
+
         Vector3 direccion =
             transform.right * movimientoInput.x +
             transform.forward * movimientoInput.y;
@@ -217,8 +207,7 @@ public class personajeController : MonoBehaviour
             : velocidadCaminar;
 
         controller.Move(
-            direccion * velocidad * Time.deltaTime
-        );
+            direccion * velocidad * Time.deltaTime);
 
         if (controller.isGrounded && saltar)
         {
@@ -231,30 +220,28 @@ public class personajeController : MonoBehaviour
 
     private void AplicarGravedad()
     {
+        if (controller == null)
+            return;
+
         if (controller.isGrounded && velocidadVertical.y < 0)
-        {
             velocidadVertical.y = -2f;
-        }
 
         velocidadVertical.y += gravedad * Time.deltaTime;
 
         controller.Move(
-            velocidadVertical * Time.deltaTime
-        );
+            velocidadVertical * Time.deltaTime);
     }
 
     private void SonidosPasos()
     {
-        if (audioSource == null)
+        if (audioSource == null || controller == null)
             return;
 
         if (!controller.isGrounded ||
             movimientoInput.magnitude < 0.1f)
         {
             if (audioSource.isPlaying)
-            {
                 audioSource.Stop();
-            }
 
             return;
         }
@@ -266,9 +253,11 @@ public class personajeController : MonoBehaviour
         if (audioSource.clip != clipActual)
         {
             audioSource.clip = clipActual;
-            audioSource.Play();
+
+            if (clipActual != null)
+                audioSource.Play();
         }
-        else if (!audioSource.isPlaying)
+        else if (!audioSource.isPlaying && clipActual != null)
         {
             audioSource.Play();
         }
@@ -276,47 +265,57 @@ public class personajeController : MonoBehaviour
 
     public void Curar(InputAction.CallbackContext context)
     {
-        if (!EsJugadorLocal() || pausa)
-            return;
-
-        if (saludJugador == null)
+        if (!EsJugadorLocal() || pausa || saludJugador == null)
             return;
 
         if (context.performed)
-        {
             saludJugador.IniciarCuracion();
-        }
         else if (context.canceled)
-        {
             saludJugador.CancelarCuracion();
-        }
+    }
+
+    public void EntrarZonaCompra(ZonaCompra zona)
+    {
+        if (!EsJugadorLocal() || zona == null)
+            return;
+
+        zonaCompraActual = zona;
+
+        if (textoComprar != null)
+            textoComprar.SetActive(true);
+    }
+
+    public void SalirZonaCompra(ZonaCompra zona)
+    {
+        if (!EsJugadorLocal())
+            return;
+
+        if (zonaCompraActual != zona)
+            return;
+
+        zonaCompraActual = null;
+
+        if (textoComprar != null)
+            textoComprar.SetActive(false);
     }
 
     public void comprar(InputAction.CallbackContext context)
     {
-        if (!EsJugadorLocal() || pausa)
+        if (!EsJugadorLocal() || pausa || !context.performed)
             return;
 
-        if (!context.performed)
-            return;
-
-        if (puntuacion == null)
+        if (zonaCompraActual == null)
         {
-            Debug.LogError(
-                "No hay una referencia de Puntuacion."
-            );
+            Debug.Log("No estás dentro de una zona de compra.");
             return;
         }
 
-        puntuacion.ComprarArma();
+        zonaCompraActual.IntentarComprar();
     }
 
     private void OnDestroy()
     {
-        // Restaurar el tiempo si se destruye al jugador pausado.
         if (EsJugadorLocal() && pausa)
-        {
             Time.timeScale = 1f;
-        }
     }
 }

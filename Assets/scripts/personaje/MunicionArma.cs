@@ -52,34 +52,26 @@ public class MunicionArma : MonoBehaviour
 
     public bool PuedeRecargar()
     {
-        return cargadorActual == 0 &&
+        return cargadorActual < capacidadCargador &&
                municionAlmacenada > 0 &&
                !recargando;
     }
 
-    // Llamado desde el Animation Event
     public void GastarBala()
     {
-        // No generar balas desde jugadores remotos.
-        if (!EsJugadorLocal())
-            return;
-
-        if (!PuedeDisparar())
+        if (!EsJugadorLocal() || !PuedeDisparar())
             return;
 
         if (bala == null || spawnPoint == null)
         {
             Debug.LogError(
-                "Falta asignar Bala o SpawnPoint.",
-                this
-            );
+                "Falta asignar Bala o SpawnPoint.", this);
             return;
         }
 
         cargadorActual--;
         ActualizarUI();
 
-        // La bala es local al jugador que dispara.
         GameObject nuevaBala = Instantiate(
             bala,
             spawnPoint.position,
@@ -99,10 +91,7 @@ public class MunicionArma : MonoBehaviour
         Rigidbody rb = nuevaBala.GetComponent<Rigidbody>();
 
         if (rb != null)
-        {
-            rb.linearVelocity =
-                spawnPoint.forward * velocidadBala;
-        }
+            rb.linearVelocity = spawnPoint.forward * velocidadBala;
     }
 
     public void IniciarRecarga()
@@ -110,23 +99,21 @@ public class MunicionArma : MonoBehaviour
         if (!EsJugadorLocal())
             return;
 
-        if (cargadorActual > 0)
-            return;
-
-        if (municionAlmacenada <= 0)
+        if (!PuedeRecargar())
             return;
 
         recargando = true;
     }
 
-    // También puede llamarse desde Animation Event
     public void Recargar()
     {
         if (!EsJugadorLocal())
             return;
 
-        int balasNecesarias =
-            capacidadCargador - cargadorActual;
+        if (!recargando)
+            return;
+
+        int balasNecesarias = capacidadCargador - cargadorActual;
 
         int balasARecargar = Mathf.Min(
             balasNecesarias,
@@ -135,9 +122,24 @@ public class MunicionArma : MonoBehaviour
 
         cargadorActual += balasARecargar;
         municionAlmacenada -= balasARecargar;
-
         recargando = false;
+
         ActualizarUI();
+    }
+
+    // Agrega munición comprada al inventario de esta arma.
+    public bool AgregarMunicionAlmacenada(int cantidad)
+    {
+        if (!EsJugadorLocal())
+            return false;
+
+        if (cantidad <= 0)
+            return false;
+
+        municionAlmacenada += cantidad;
+        ActualizarUI();
+
+        return true;
     }
 
     private void ActualizarUI()
