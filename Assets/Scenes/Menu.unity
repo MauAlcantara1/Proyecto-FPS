@@ -434,7 +434,7 @@ AudioSource:
   m_GameObject: {fileID: 122819812}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 6632744635350497211, guid: a718e94c9582c57469b2e169e9335d0b, type: 2}
+  OutputAudioMixerGroup: {fileID: -5567922255417474408, guid: a718e94c9582c57469b2e169e9335d0b, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 0
@@ -3709,9 +3709,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Creditos
-
-'
+  m_text: EQUIPO
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8e9b8c025afbee5408a4b06b07a5b6f9, type: 2}
   m_sharedMaterial: {fileID: -9048640295420031102, guid: 8e9b8c025afbee5408a4b06b07a5b6f9, type: 2}
