@@ -1,3 +1,4 @@
+
 using TMPro;
 using UnityEngine;
 
@@ -6,34 +7,32 @@ public class Puntuacion : MonoBehaviour
     [Header("Puntuación")]
     [SerializeField] private int puntosPorDaño = 7;
     [SerializeField] private TMP_Text textoPuntuacion;
+
+    [Header("Compra de armas")]
     [SerializeField] private int costo = 10;
     [SerializeField] private GameObject panelCompra;
     [SerializeField] private armaController armaController;
 
-    [Header("Récord local")]
-    [SerializeField] private string nombreJugador = "Jugador";
-
     private int puntuacionActual = 0;
     private int puntuacionTotalPartida = 0;
     private bool puedeComprar = false;
-    private bool partidaFinalizada = false;
+    private bool partidaRegistrada = false;
 
     private const string CLAVE_RECORD = "RecordPuntuacion";
     private const string CLAVE_NOMBRE_RECORD = "RecordNombre";
-    private const string CLAVE_ULTIMA_PUNTUACION = "UltimaPuntuacion";
     private const string CLAVE_NOMBRE_JUGADOR = "NombreJugador";
     private const string CLAVE_NUEVO_RECORD = "NuevoRecord";
 
     private void Start()
     {
+        PlayerPrefs.SetInt(CLAVE_NUEVO_RECORD, 0);
+        PlayerPrefs.Save();
+
         ActualizarUI();
     }
 
     public void SumarPuntosPorDaño()
     {
-        if (partidaFinalizada)
-            return;
-
         puntuacionActual += puntosPorDaño;
         puntuacionTotalPartida += puntosPorDaño;
 
@@ -48,53 +47,46 @@ public class Puntuacion : MonoBehaviour
     private void ActualizarUI()
     {
         if (textoPuntuacion != null)
-            textoPuntuacion.text = "  $ " + puntuacionActual.ToString();
+        {
+            textoPuntuacion.text = "  $ " + puntuacionActual;
+        }
     }
 
+    // Puntuación disponible para gastar.
     public int ObtenerPuntuacion()
     {
         return puntuacionActual;
     }
 
+    // Total acumulado durante la partida, sin restar las compras.
     public int ObtenerPuntuacionTotalPartida()
     {
         return puntuacionTotalPartida;
     }
 
-    public void EstablecerNombreJugador(string nombre)
-    {
-        if (!string.IsNullOrWhiteSpace(nombre))
-            nombreJugador = nombre.Trim();
-    }
-
-    // Guarda el resultado cuando el jugador muere.
+    // Guarda el récord cuando termina la partida.
     public void RegistrarFinPartida()
     {
-        if (partidaFinalizada)
+        if (partidaRegistrada)
             return;
 
-        partidaFinalizada = true;
+        partidaRegistrada = true;
 
-        int recordAnterior = PlayerPrefs.GetInt(CLAVE_RECORD, 0);
-        bool nuevoRecord = puntuacionTotalPartida > recordAnterior;
-
-        PlayerPrefs.SetInt(
-            CLAVE_ULTIMA_PUNTUACION,
-            puntuacionTotalPartida
+        int recordAnterior = PlayerPrefs.GetInt(
+            CLAVE_RECORD,
+            0
         );
 
-        PlayerPrefs.SetString(
-            CLAVE_NOMBRE_JUGADOR,
-            nombreJugador
-        );
-
-        PlayerPrefs.SetInt(
-            CLAVE_NUEVO_RECORD,
-            nuevoRecord ? 1 : 0
-        );
-
-        if (nuevoRecord)
+        if (puntuacionTotalPartida > recordAnterior)
         {
+            string nombreJugador = PlayerPrefs.GetString(
+                CLAVE_NOMBRE_JUGADOR,
+                "Jugador"
+            );
+
+            if (string.IsNullOrWhiteSpace(nombreJugador))
+                nombreJugador = "Jugador";
+
             PlayerPrefs.SetInt(
                 CLAVE_RECORD,
                 puntuacionTotalPartida
@@ -104,19 +96,25 @@ public class Puntuacion : MonoBehaviour
                 CLAVE_NOMBRE_RECORD,
                 nombreJugador
             );
+
+            PlayerPrefs.SetInt(
+                CLAVE_NUEVO_RECORD,
+                1
+            );
+
+            PlayerPrefs.Save();
+
+            Debug.Log(
+                "Nuevo récord: " + nombreJugador
+                + " - " + puntuacionTotalPartida
+            );
         }
-
-        PlayerPrefs.Save();
-
-        Debug.Log(
-            "Partida finalizada. Puntuación total: "
-            + puntuacionTotalPartida
-            + ". Nuevo récord: "
-            + nuevoRecord
-        );
+        else
+        {
+            PlayerPrefs.SetInt(CLAVE_NUEVO_RECORD, 0);
+            PlayerPrefs.Save();
+        }
     }
-
-    // --- Métodos llamados desde ZonaCompra ---
 
     public void EntrarZonaCompra()
     {
@@ -136,7 +134,7 @@ public class Puntuacion : MonoBehaviour
 
     public void ComprarArma()
     {
-        if (!puedeComprar || partidaFinalizada)
+        if (!puedeComprar)
             return;
 
         if (puntuacionActual < costo)
@@ -145,10 +143,7 @@ public class Puntuacion : MonoBehaviour
             return;
         }
 
-        // Solo disminuyen las monedas disponibles.
-        // La puntuación total de la partida no cambia.
         puntuacionActual -= costo;
-
         ActualizarUI();
 
         if (armaController != null)

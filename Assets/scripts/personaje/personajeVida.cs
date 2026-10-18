@@ -34,6 +34,11 @@ public class personajeVida : MonoBehaviourPun
     private bool estaCurandose = false;
     private Coroutine corrutinaCuracion;
 
+    [Header("Pantalla de Muerte")]
+    [SerializeField] private PantallaMuerte pantallaMuerte;
+
+    private bool pantallaMuerteMostrada = false;
+
     private bool EsJugadorLocal()
     {
         return !PhotonNetwork.InRoom || photonView.IsMine;
@@ -139,6 +144,7 @@ public class personajeVida : MonoBehaviourPun
 
         ActualizarInterfaz();
         SincronizarVida();
+        ComprobarMuerte();
     }
 
     private void SincronizarVida()
@@ -310,5 +316,46 @@ public class personajeVida : MonoBehaviourPun
     public bool EstaCurandose()
     {
         return estaCurandose;
+    }
+
+    private void ComprobarMuerte()
+    {
+        if (pantallaMuerteMostrada || EstaVivo())
+            return;
+
+        if (!EsJugadorLocal())
+            return;
+
+        pantallaMuerteMostrada = true;
+
+        if (estaCurandose)
+            CancelarCuracion();
+
+        int puntuacionFinal = 0;
+
+        Puntuacion puntuacion =
+            FindFirstObjectByType<Puntuacion>();
+
+        if (puntuacion != null)
+        {
+            puntuacionFinal =
+                puntuacion.ObtenerPuntuacionTotalPartida();
+
+            puntuacion.RegistrarFinPartida();
+        }
+
+        if (pantallaMuerte != null)
+        {
+            pantallaMuerte.MostrarPantallaMuerte(
+                puntuacionFinal
+            );
+        }
+        else
+        {
+            Debug.LogWarning(
+                "No está asignada PantallaMuerte en personajeVida.",
+                this
+            );
+        }
     }
 }
