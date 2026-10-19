@@ -14237,7 +14237,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -730492690, guid: 62599c97c231eb4439aa977b96305242, type: 3}
+  m_Sprite: {fileID: 322928212, guid: 1d78ea13ed0615c4996735add71cbd43, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -35722,7 +35722,7 @@ MonoBehaviour:
   puntuacion: {fileID: 1094270711}
   saludJugador: {fileID: 1208618234}
   panelPausa: {fileID: 196614915}
-  textoComprar: {fileID: 113335996}
+  textoComprar: {fileID: 466786263}
 --- !u!143 &1208618239
 CharacterController:
   m_ObjectHideFlags: 0
@@ -35767,6 +35767,8 @@ MonoBehaviour:
   segundaArma: {fileID: 1965315134}
   UIseleccionadaUno: {fileID: 198317202}
   UIseleccionadaDos: {fileID: 832480158}
+  UIseleccionadaBotiquin: {fileID: 2131953726}
+  saludJugador: {fileID: 1208618234}
   primariaActiva: 1
   fusilDesbloqueado: 0
 --- !u!95 &1208618241
@@ -64634,7 +64636,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 0.67
+  m_PixelsPerUnitMultiplier: 2
 --- !u!222 &2131953729
 CanvasRenderer:
   m_ObjectHideFlags: 0

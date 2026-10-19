@@ -129,8 +129,7 @@ public class personajeVida : MonoBehaviourPun
         if (Time.time < siguienteTiempoDaño)
             return;
 
-        siguienteTiempoDaño =
-            Time.time + segundosInmunidad;
+        siguienteTiempoDaño = Time.time + segundosInmunidad;
 
         if (estaCurandose)
             CancelarCuracion();
@@ -183,8 +182,7 @@ public class personajeVida : MonoBehaviourPun
             EstaVivo() &&
             vidaActual < vidaMaxima)
         {
-            corrutinaCuracion =
-                StartCoroutine(ProcesoCuracion());
+            corrutinaCuracion = StartCoroutine(ProcesoCuracion());
         }
     }
 
@@ -221,7 +219,9 @@ public class personajeVida : MonoBehaviourPun
             if (barraProgresoCuracion != null)
             {
                 barraProgresoCuracion.value =
-                    tiempoTranscurrido / tiempoCuracion;
+                    tiempoCuracion > 0f
+                        ? Mathf.Clamp01(tiempoTranscurrido / tiempoCuracion)
+                        : 1f;
             }
 
             yield return null;
@@ -242,7 +242,7 @@ public class personajeVida : MonoBehaviourPun
             vidaMaxima
         );
 
-        cantidadBotiquines--;
+        cantidadBotiquines = Mathf.Max(0, cantidadBotiquines - 1);
 
         estaCurandose = false;
         corrutinaCuracion = null;
@@ -255,9 +255,14 @@ public class personajeVida : MonoBehaviourPun
 
         ActualizarInterfaz();
         SincronizarVida();
+
+        Debug.Log(
+            "Curación completada. Botiquines disponibles: " +
+            cantidadBotiquines
+        );
     }
 
-    // NUEVO: permite comprar botiquines adicionales.
+    // Comprar botiquines adicionales.
     public bool ComprarBotiquines(int cantidad)
     {
         if (!EsJugadorLocal())
@@ -273,6 +278,12 @@ public class personajeVida : MonoBehaviourPun
         );
 
         return true;
+    }
+
+    // NUEVO: consultar la cantidad para el indicador de armaController.
+    public int ObtenerCantidadBotiquines()
+    {
+        return cantidadBotiquines;
     }
 
     private void ActualizarInterfaz()
@@ -363,9 +374,7 @@ public class personajeVida : MonoBehaviourPun
 
         if (pantallaMuerte != null)
         {
-            pantallaMuerte.MostrarPantallaMuerte(
-                puntuacionFinal
-            );
+            pantallaMuerte.MostrarPantallaMuerte(puntuacionFinal);
         }
         else
         {

@@ -1,4 +1,3 @@
-
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -25,10 +24,19 @@ public class armaController : MonoBehaviour
 
     [Header("Segunda arma")]
     [SerializeField] private GameObject segundaArma;
+
+    [Header("Indicadores de selección")]
     [SerializeField] private GameObject UIseleccionadaUno;
     [SerializeField] private GameObject UIseleccionadaDos;
 
+    [Tooltip("Indicador visual de botiquines disponibles.")]
+    [SerializeField] private GameObject UIseleccionadaBotiquin;
+
+    [Header("Sistema de botiquines")]
+    [SerializeField] private personajeVida saludJugador;
+
     [SerializeField] private bool primariaActiva = true;
+
     private bool disparando = false;
 
     [Header("Desbloqueo")]
@@ -39,16 +47,26 @@ public class armaController : MonoBehaviour
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
+
+        if (saludJugador == null)
+            saludJugador = GetComponentInParent<personajeVida>();
+
+        if (saludJugador == null)
+            saludJugador = GetComponentInChildren<personajeVida>(true);
     }
 
     private void Start()
     {
         ActualizarArmaVisible();
         ActualizarAnimator();
+        ActualizarIndicadorBotiquin();
     }
 
     private void Update()
     {
+        // Actualiza el indicador según los botiquines disponibles.
+        ActualizarIndicadorBotiquin();
+
         if (!disparando)
             return;
 
@@ -69,15 +87,18 @@ public class armaController : MonoBehaviour
     {
         if (pistola != null)
             pistola.SetActive(
-                primariaActiva && armaActiva == TipoArma.pistola);
+                primariaActiva && armaActiva == TipoArma.pistola
+            );
 
         if (fusil != null)
             fusil.SetActive(
-                primariaActiva && armaActiva == TipoArma.fusil);
+                primariaActiva && armaActiva == TipoArma.fusil
+            );
 
         if (uzi != null)
             uzi.SetActive(
-                primariaActiva && armaActiva == TipoArma.uzi);
+                primariaActiva && armaActiva == TipoArma.uzi
+            );
 
         if (segundaArma != null)
             segundaArma.SetActive(!primariaActiva);
@@ -87,6 +108,20 @@ public class armaController : MonoBehaviour
 
         if (UIseleccionadaDos != null)
             UIseleccionadaDos.SetActive(!primariaActiva);
+
+        ActualizarIndicadorBotiquin();
+    }
+
+    private void ActualizarIndicadorBotiquin()
+    {
+        if (UIseleccionadaBotiquin == null)
+            return;
+
+        bool tieneBotiquines =
+            saludJugador != null &&
+            saludJugador.ObtenerCantidadBotiquines() > 0;
+
+        UIseleccionadaBotiquin.SetActive(tieneBotiquines);
     }
 
     private void ActualizarAnimator()
@@ -166,14 +201,17 @@ public class armaController : MonoBehaviour
 
         if (municionActual == null)
         {
-            Debug.LogWarning("No hay un componente MunicionArma en el arma activa.");
+            Debug.LogWarning(
+                "No hay un componente MunicionArma en el arma activa."
+            );
             return;
         }
 
-        // Permite recargar aunque queden balas en el cargador.
         if (!municionActual.PuedeRecargar())
         {
-            Debug.Log("No se puede recargar: cargador lleno, sin reserva o recarga en curso.");
+            Debug.Log(
+                "No se puede recargar: cargador lleno, sin reserva o recarga en curso."
+            );
             return;
         }
 
@@ -212,7 +250,6 @@ public class armaController : MonoBehaviour
 
         Debug.Log("Cambio de arma2");
 
-        // Detiene el estado de disparo al cambiar de arma.
         disparando = false;
 
         ActualizarArmaVisible();
