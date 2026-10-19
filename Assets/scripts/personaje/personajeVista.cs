@@ -10,6 +10,22 @@ public class personajeVista : MonoBehaviour
 
     private float rotacionX = 0f;
 
+    private void OnEnable()
+    {
+        sensibilidad = PlayerPrefs.GetFloat("SensibilidadMouseGuardada", sensibilidad);
+        ConfiguracionSensibilidad.OnSensibilidadCambiada += ActualizarSensibilidad;
+    }
+
+    private void OnDisable()
+    {
+        ConfiguracionSensibilidad.OnSensibilidadCambiada -= ActualizarSensibilidad;
+    }
+
+    private void ActualizarSensibilidad(float nuevaSensibilidad)
+    {
+        sensibilidad = nuevaSensibilidad;
+    }
+
 
     public void Mirar(InputAction.CallbackContext context)
     {
