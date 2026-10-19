@@ -3,37 +3,86 @@ using UnityEngine;
 
 public class BalaImpacto : MonoBehaviour
 {
+    [Header("Tipo de Arma")]
+    [SerializeField] private bool esMachete = false;
+
     [Header("Daño")]
     [SerializeField] private int dañoBase = 25;
 
-    [Header("Efectos")]
+    [Header("Efectos (Solo Balas)")]
     [SerializeField] private GameObject efectoImpacto;
     [SerializeField] private GameObject marcaImpacto;
 
     private bool impactoProcesado = false;
 
+    private void Start()
+    {
+
+        Collider col = GetComponentInChildren<Collider>(true);
+
+
+    }
+
     private void OnCollisionEnter(Collision collision)
     {
-        // Evitar registrar dos impactos con la misma bala.
-        if (impactoProcesado)
+        ProcesarImpacto(
+            collision.collider,
+            collision
+        );
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+
+        if (!esMachete)
             return;
 
-        impactoProcesado = true;
+        ProcesarImpacto(other, null);
+    }
 
-        // Buscar el zombi, incluso si golpeamos
-        // un collider hijo, como la cabeza.
+    private void ProcesarImpacto(
+        Collider colliderImpactado,
+        Collision collision)
+    {
+       
+
+        if (!esMachete && impactoProcesado)
+        {
+            return;
+        }
+
         EnemigoController zombie =
-            collision.collider.GetComponentInParent<EnemigoController>();
+            colliderImpactado.GetComponentInParent<EnemigoController>();
 
         if (zombie != null)
         {
+            
+
+            
+
             zombie.RecibirImpacto(
                 dañoBase,
-                collision.collider
+                colliderImpactado
             );
+
+            
+        }
+        else
+        {
+           
         }
 
-        if (collision.contactCount > 0)
+        // El machete no genera efectos
+        // ni se destruye.
+        if (esMachete)
+        {
+            
+            return;
+        }
+
+        impactoProcesado = true;
+
+        if (collision != null && collision.contactCount > 0)
         {
             ContactPoint contacto = collision.GetContact(0);
 
@@ -63,6 +112,8 @@ public class BalaImpacto : MonoBehaviour
                 Destroy(marca, 10f);
             }
         }
+
+
 
         Destroy(gameObject);
     }

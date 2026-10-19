@@ -1890,7 +1890,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a9577830e3f943f49a3e6b71c75a3222, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HordaManager
-  dificultadActual: 1
   enemigoPrefab: {fileID: 4493914613880827488, guid: 6dc4cf4496348884d8ee27743ae38562, type: 3}
   spawnPoints:
   - {fileID: 2047394539}
@@ -2528,6 +2527,7 @@ GameObject:
   - component: {fileID: 1067300880}
   - component: {fileID: 1067300879}
   - component: {fileID: 1067300878}
+  - component: {fileID: 1067300890}
   m_Layer: 0
   m_Name: Jugador
   m_TagString: Player
@@ -2626,6 +2626,8 @@ MonoBehaviour:
   linterna: {fileID: 922785003}
   puntuacion: {fileID: 0}
   saludJugador: {fileID: 1067300884}
+  panelPausa: {fileID: 0}
+  textoComprar: {fileID: 0}
 --- !u!114 &1067300882
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2840,6 +2842,7 @@ MonoBehaviour:
   tiempoCuracion: 3
   barraProgresoCuracion: {fileID: 1862986057}
   panelCuracionUI: {fileID: 1264207312}
+  pantallaMuerte: {fileID: 0}
 --- !u!54 &1067300885
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -2965,6 +2968,28 @@ Transform:
   - {fileID: 1163976265}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: -194.576, z: 0}
+--- !u!114 &1067300890
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1067300877}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.PhotonView
+  ObservedComponentsFoldoutOpen: 1
+  Group: 0
+  prefixField: -1
+  Synchronization: 3
+  OwnershipTransfer: 0
+  observableSearch: 2
+  ObservedComponents: []
+  sceneViewId: 1
+  InstantiationId: 0
+  isRuntimeInstantiated: 0
 --- !u!1 &1073747340
 GameObject:
   m_ObjectHideFlags: 0
