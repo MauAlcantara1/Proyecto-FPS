@@ -5742,8 +5742,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 116.9}
-  m_SizeDelta: {x: 0, y: -416.87}
+  m_AnchoredPosition: {x: 0, y: 113.36751}
+  m_SizeDelta: {x: 0, y: -423.935}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &190449339
 MonoBehaviour:
@@ -21935,7 +21935,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &832480159
 RectTransform:
   m_ObjectHideFlags: 0
@@ -21943,7 +21943,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 832480158}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1.07, y: 1.07, z: 1.07}
   m_ConstrainProportionsScale: 0
@@ -21952,8 +21952,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 116.9}
-  m_SizeDelta: {x: 0, y: -416.87}
+  m_AnchoredPosition: {x: 0, y: 113.36759}
+  m_SizeDelta: {x: 0, y: -423.935}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &832480160
 MonoBehaviour:
@@ -21984,7 +21984,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 0.67
+  m_PixelsPerUnitMultiplier: 0.63
 --- !u!222 &832480161
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -33895,7 +33895,7 @@ GameObject:
   - component: {fileID: 1227782665}
   - component: {fileID: 1227782664}
   m_Layer: 5
-  m_Name: ArmaDos (1)
+  m_Name: Botiquin
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -39177,6 +39177,7 @@ GameObject:
   - component: {fileID: 1438130995}
   - component: {fileID: 1438130997}
   - component: {fileID: 1438130996}
+  - component: {fileID: 1438130998}
   m_Layer: 5
   m_Name: Armas
   m_TagString: Untagged
@@ -39197,8 +39198,8 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 198317203}
-  - {fileID: 791870872}
   - {fileID: 832480159}
+  - {fileID: 791870872}
   - {fileID: 190449338}
   - {fileID: 2131953727}
   - {fileID: 1227782663}
@@ -39247,6 +39248,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1438130994}
   m_CullTransparentMesh: 1
+--- !u!114 &1438130998
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1438130994}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68cc242fa512b6147a3c53ca07575b6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HUDArmasLocal
+  UIseleccionadaUno: {fileID: 198317202}
+  UIseleccionadaDos: {fileID: 832480158}
+  UIseleccionadaBotiquin: {fileID: 2131953726}
+  textoCargador: {fileID: 1357299707}
+  textoMunicion: {fileID: 1445666669}
 --- !u!1001 &1438501573
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -47386,6 +47404,7 @@ GameObject:
   - component: {fileID: 1675702596}
   - component: {fileID: 1675702600}
   - component: {fileID: 1675702601}
+  - component: {fileID: 1675702602}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -47499,7 +47518,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MenuPausa
   panelPausa: {fileID: 196614915}
   panelConfiguracion: {fileID: 1702376982}
-  jugador: {fileID: 0}
   escenaMenu: Menu
 --- !u!114 &1675702601
 MonoBehaviour:
@@ -47518,6 +47536,24 @@ MonoBehaviour:
   textoPuntuacionFinal: {fileID: 127290069}
   textoRecord: {fileID: 1111729901}
   escenaMenu: Menu
+--- !u!114 &1675702602
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1675702595}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a78c2e58c476f7448bd0c7aa32cb4f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  textoVidaCompanero: {fileID: 1326760999}
+  imagenVidaCompanero: {fileID: 1166610889}
+  panelVidaCompanero: {fileID: 1451689214}
+  spriteVidaLlena: {fileID: 482209047, guid: 40647a5b5ec6274488a8470fead6b3cb, type: 3}
+  spriteVidaMedia: {fileID: -879631340, guid: 40647a5b5ec6274488a8470fead6b3cb, type: 3}
+  spriteVidaBaja: {fileID: -2087462196, guid: 40647a5b5ec6274488a8470fead6b3cb, type: 3}
 --- !u!1001 &1676324048
 PrefabInstance:
   m_ObjectHideFlags: 0

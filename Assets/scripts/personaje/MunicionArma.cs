@@ -168,4 +168,26 @@ public class MunicionArma : MonoBehaviour
     {
         return recargando;
     }
+
+    public void AsignarInterfaz(
+        TMP_Text cargador,
+        TMP_Text municion)
+    {
+        if (!EsJugadorLocal())
+            return;
+
+        textoCargador = cargador;
+        textoMunicion = municion;
+
+        ActualizarUI();
+    }
+
+    public void DesconectarInterfaz()
+    {
+        if (!EsJugadorLocal())
+            return;
+
+        textoCargador = null;
+        textoMunicion = null;
+    }
 }

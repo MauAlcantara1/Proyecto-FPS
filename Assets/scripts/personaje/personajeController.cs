@@ -23,7 +23,7 @@ public class personajeController : MonoBehaviour
     [SerializeField] private personajeVida saludJugador;
 
     [Header("Pausa")]
-    [SerializeField] private GameObject panelPausa;
+    [SerializeField] private MenuPausa menuPausa;
 
     [Header("Interfaz de compra")]
     [SerializeField] private GameObject textoComprar;
@@ -67,14 +67,24 @@ public class personajeController : MonoBehaviour
         pausa = false;
         Time.timeScale = 1f;
 
-        if (panelPausa != null)
+        pausa = false;
+        Time.timeScale = 1f;
+
+        if (menuPausa == null)
         {
-            panelPausa.SetActive(false);
+            menuPausa = FindFirstObjectByType<MenuPausa>();
+        }
+
+        if (menuPausa != null)
+        {
+            menuPausa.AsignarJugador(this);
+            menuPausa.OcultarPaneles();
         }
         else
         {
             Debug.LogWarning(
-                "No se ha asignado PanelPausa en el Inspector.");
+                "No se encontró MenuPausa en la escena."
+            );
         }
 
         if (textoComprar != null)
@@ -175,17 +185,32 @@ public class personajeController : MonoBehaviour
 
         pausa = true;
 
-        if (panelPausa != null)
-            panelPausa.SetActive(true);
-
-        Time.timeScale = 0f;
+        // En multijugador NO detenemos el tiempo.
+        // En un jugador conservamos la pausa tradicional.
+        if (!PhotonNetwork.InRoom)
+        {
+            Time.timeScale = 0f;
+        }
 
         movimientoInput = Vector2.zero;
         saltar = false;
         correr = false;
 
+        // Liberar el cursor para utilizar los botones
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
         if (audioSource != null && audioSource.isPlaying)
+        {
             audioSource.Stop();
+        }
+
+        if (menuPausa != null)
+        {
+            menuPausa.MostrarPausa();
+        }
+
+        Debug.Log("Jugador local en pausa.");
     }
 
     public void ReanudarJuego()
@@ -194,10 +219,25 @@ public class personajeController : MonoBehaviour
             return;
 
         pausa = false;
-        Time.timeScale = 1f;
 
-        if (panelPausa != null)
-            panelPausa.SetActive(false);
+        if (!PhotonNetwork.InRoom)
+        {
+            Time.timeScale = 1f;
+        }
+
+        if (menuPausa != null)
+        {
+            menuPausa.OcultarPaneles();
+        }
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+
+        movimientoInput = Vector2.zero;
+        saltar = false;
+        correr = false;
+
+        Debug.Log("Jugador local reanudó la partida.");
     }
 
     private void MoverJugador()
@@ -331,5 +371,10 @@ public class personajeController : MonoBehaviour
     {
         if (EsJugadorLocal() && pausa)
             Time.timeScale = 1f;
+    }
+
+    public bool EstaEnPausa()
+    {
+        return pausa;
     }
 }

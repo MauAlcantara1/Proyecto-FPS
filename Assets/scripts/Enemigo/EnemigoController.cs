@@ -506,11 +506,7 @@ public class EnemigoController : MonoBehaviourPun, IPunInstantiateMagicCallback
             true
         );
 
-        Debug.Log(
-            "Zombie configurado por Photon. Vida: " +
-            vida + " | Daño: " + daño +
-            " | Velocidad: " + velocidadNueva
-        );
+
     }
 
     [PunRPC]

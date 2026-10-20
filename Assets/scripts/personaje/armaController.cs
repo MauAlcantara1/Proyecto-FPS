@@ -1,11 +1,17 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Photon.Pun;
+using TMPro;
 
 public class armaController : MonoBehaviour
 {
+    
     private Animator animatorActual;
     private CharacterController controller;
     private MunicionArma municionActual;
+
+    private TMP_Text textoCargadorHUD;
+    private TMP_Text textoMunicionHUD;
 
     public enum TipoArma
     {
@@ -44,9 +50,19 @@ public class armaController : MonoBehaviour
 
     public bool FusilDesbloqueado => fusilDesbloqueado;
 
+    private PhotonView vistaJugador;
+
+    private bool EsJugadorLocal()
+    {
+        return !PhotonNetwork.InRoom ||
+            (vistaJugador != null && vistaJugador.IsMine);
+    }
+
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
+
+        vistaJugador = GetComponentInParent<PhotonView>();
 
         if (saludJugador == null)
             saludJugador = GetComponentInParent<personajeVida>();
@@ -57,6 +73,23 @@ public class armaController : MonoBehaviour
 
     private void Start()
     {
+        if (EsJugadorLocal())
+        {
+            HUDArmasLocal hud =
+                FindFirstObjectByType<HUDArmasLocal>();
+
+            if (hud != null)
+            {
+                hud.Conectar(this);
+            }
+            else
+            {
+                Debug.LogWarning(
+                    "No se encontró HUDArmasLocal en la escena."
+                );
+            }
+        }
+
         ActualizarArmaVisible();
         ActualizarAnimator();
         ActualizarIndicadorBotiquin();
@@ -64,6 +97,8 @@ public class armaController : MonoBehaviour
 
     private void Update()
     {
+        if (!EsJugadorLocal())
+        return;
         // Actualiza el indicador según los botiquines disponibles.
         ActualizarIndicadorBotiquin();
 
@@ -103,18 +138,14 @@ public class armaController : MonoBehaviour
         if (segundaArma != null)
             segundaArma.SetActive(!primariaActiva);
 
-        if (UIseleccionadaUno != null)
-            UIseleccionadaUno.SetActive(primariaActiva);
-
-        if (UIseleccionadaDos != null)
-            UIseleccionadaDos.SetActive(!primariaActiva);
-
+        // Actualizar únicamente la interfaz local
+        ActualizarIndicadoresArmas();
         ActualizarIndicadorBotiquin();
     }
 
     private void ActualizarIndicadorBotiquin()
     {
-        if (UIseleccionadaBotiquin == null)
+        if (!EsJugadorLocal() || UIseleccionadaBotiquin == null)
             return;
 
         bool tieneBotiquines =
@@ -140,23 +171,34 @@ public class armaController : MonoBehaviour
         ActualizarMunicion();
     }
 
-    private void ActualizarMunicion()
-    {
-        if (primariaActiva)
-        {
-            GameObject armaActual = ObtenerArmaPrimaria();
+private void ActualizarMunicion()
+{
+    // Guardar la referencia del arma anterior
+    MunicionArma municionAnterior = municionActual;
 
-            municionActual = armaActual != null
-                ? armaActual.GetComponent<MunicionArma>()
-                : null;
-        }
-        else
-        {
-            municionActual = segundaArma != null
-                ? segundaArma.GetComponent<MunicionArma>()
-                : null;
-        }
+    // Identificar el arma equipada
+    GameObject armaActual = primariaActiva
+        ? ObtenerArmaPrimaria()
+        : segundaArma;
+
+    // Obtener su componente de munición
+    municionActual = armaActual != null
+        ? armaActual.GetComponent<MunicionArma>()
+        : null;
+
+    if (!EsJugadorLocal())
+        return;
+
+    // Desconectar el HUD del arma anterior
+    if (municionAnterior != null &&
+        municionAnterior != municionActual)
+    {
+        municionAnterior.DesconectarInterfaz();
     }
+
+    // Conectar el HUD al arma equipada
+    ActualizarHUDMunicion();
+}
 
     private Animator ObtenerAnimatorArmaPrimaria()
     {
@@ -187,6 +229,8 @@ public class armaController : MonoBehaviour
 
     public void Cambio(InputAction.CallbackContext context)
     {
+        if (!EsJugadorLocal())
+            return;
         if (context.performed && animatorActual != null)
         {
             animatorActual.SetTrigger("Cambio");
@@ -196,6 +240,8 @@ public class armaController : MonoBehaviour
 
     public void Recarga(InputAction.CallbackContext context)
     {
+        if (!EsJugadorLocal())
+            return;
         if (!context.performed)
             return;
 
@@ -223,6 +269,8 @@ public class armaController : MonoBehaviour
 
     public void Disparo(InputAction.CallbackContext context)
     {
+        if (!EsJugadorLocal())
+            return;
         if (context.performed)
         {
             if (!primariaActiva)
@@ -246,6 +294,8 @@ public class armaController : MonoBehaviour
 
     public void CambiarArma()
     {
+        if (!EsJugadorLocal())
+            return;
         primariaActiva = !primariaActiva;
 
         Debug.Log("Cambio de arma2");
@@ -269,6 +319,8 @@ public class armaController : MonoBehaviour
 
     public void DesbloquearFusil()
     {
+        if (!EsJugadorLocal())
+            return;
         if (fusilDesbloqueado)
         {
             Debug.Log("El fusil ya está desbloqueado.");
@@ -289,5 +341,69 @@ public class armaController : MonoBehaviour
         ActualizarAnimator();
 
         Debug.Log("Fusil desbloqueado y equipado.");
+    }
+
+    public void AsignarInterfaz(
+        GameObject seleccionUno,
+        GameObject seleccionDos,
+        GameObject seleccionBotiquin)
+    {
+        if (!EsJugadorLocal())
+            return;
+
+        UIseleccionadaUno = seleccionUno;
+        UIseleccionadaDos = seleccionDos;
+        UIseleccionadaBotiquin = seleccionBotiquin;
+
+        ActualizarIndicadoresArmas();
+        ActualizarIndicadorBotiquin();
+    }
+
+    private void ActualizarIndicadoresArmas()
+    {
+        if (!EsJugadorLocal())
+            return;
+
+        if (UIseleccionadaUno != null)
+            UIseleccionadaUno.SetActive(primariaActiva);
+
+        if (UIseleccionadaDos != null)
+            UIseleccionadaDos.SetActive(!primariaActiva);
+    }
+
+    public void AsignarInterfazMunicion(
+        TMP_Text cargador,
+        TMP_Text municion)
+    {
+        if (!EsJugadorLocal())
+            return;
+
+        textoCargadorHUD = cargador;
+        textoMunicionHUD = municion;
+
+        ActualizarHUDMunicion();
+    }
+
+    private void ActualizarHUDMunicion()
+    {
+        if (!EsJugadorLocal())
+            return;
+
+        if (municionActual != null)
+        {
+            municionActual.AsignarInterfaz(
+                textoCargadorHUD,
+                textoMunicionHUD
+            );
+
+            return;
+        }
+
+        // No existe un arma con munición seleccionada.
+        if (textoCargadorHUD != null)
+            textoCargadorHUD.text = "--";
+
+        if (textoMunicionHUD != null)
+            textoMunicionHUD.text = "--";
     }
 }

@@ -1119,7 +1119,7 @@ MonoBehaviour:
   linterna: {fileID: 2000405059291244903}
   puntuacion: {fileID: 0}
   saludJugador: {fileID: 4765328211944092723}
-  panelPausa: {fileID: 0}
+  menuPausa: {fileID: 0}
   textoComprar: {fileID: 0}
 --- !u!143 &7165986128410420678
 CharacterController:
@@ -1261,8 +1261,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::JugadorPhoton
   objetosSoloLocal:
   - {fileID: 3655927087360675298}
-  scriptsSoloLocal:
-  - {fileID: 4765328211944092723}
+  scriptsSoloLocal: []
 --- !u!1 &8632040652525938430
 GameObject:
   m_ObjectHideFlags: 0
