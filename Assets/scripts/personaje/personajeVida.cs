@@ -394,4 +394,11 @@ public class personajeVida : MonoBehaviourPun
     {
         return vidaMaxima;
     }
+
+    public void AsignarTextoVida(TMP_Text nuevoTexto)
+    {
+        textoVida = nuevoTexto;
+
+        ActualizarInterfaz();
+    }
 }

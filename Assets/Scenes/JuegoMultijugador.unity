@@ -47405,6 +47405,7 @@ GameObject:
   - component: {fileID: 1675702600}
   - component: {fileID: 1675702601}
   - component: {fileID: 1675702602}
+  - component: {fileID: 1675702603}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -47549,11 +47550,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   textoVidaCompanero: {fileID: 1326760999}
-  imagenVidaCompanero: {fileID: 1166610889}
-  panelVidaCompanero: {fileID: 1451689214}
+  imagenVidaCompanero: {fileID: 1390467894}
+  panelVidaCompanero: {fileID: 1346933238}
   spriteVidaLlena: {fileID: 482209047, guid: 40647a5b5ec6274488a8470fead6b3cb, type: 3}
   spriteVidaMedia: {fileID: -879631340, guid: 40647a5b5ec6274488a8470fead6b3cb, type: 3}
   spriteVidaBaja: {fileID: -2087462196, guid: 40647a5b5ec6274488a8470fead6b3cb, type: 3}
+--- !u!114 &1675702603
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1675702595}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7fb71e6fadf2a3a4abe3ee80212b6453, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  textoVidaLocal: {fileID: 824486923}
 --- !u!1001 &1676324048
 PrefabInstance:
   m_ObjectHideFlags: 0
