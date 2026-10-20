@@ -54,7 +54,15 @@ public class personajeController : MonoBehaviour
     private void Start()
     {
         if (!EsJugadorLocal())
+        {
+            Rigidbody rb = GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.useGravity = false;
+                rb.isKinematic = true;
+            }
             return;
+        }
 
         pausa = false;
         Time.timeScale = 1f;
@@ -117,7 +125,6 @@ public class personajeController : MonoBehaviour
         }
 
         MoverJugador();
-        AplicarGravedad();
         SonidosPasos();
     }
 
@@ -195,9 +202,33 @@ public class personajeController : MonoBehaviour
 
     private void MoverJugador()
     {
-        if (controller == null)
+        if (controller == null || !controller.enabled)
             return;
 
+        float deltaTime = Time.deltaTime;
+
+        // Verificar si el personaje está en el suelo
+        bool estaEnSuelo = controller.isGrounded;
+
+        if (estaEnSuelo && velocidadVertical.y < 0f)
+        {
+            velocidadVertical.y = -2f;
+        }
+
+        // Salto
+        if (estaEnSuelo && saltar)
+        {
+            velocidadVertical.y = Mathf.Sqrt(
+                fuerzaSalto * -2f * gravedad
+            );
+
+            saltar = false;
+        }
+
+        // Aplicar gravedad
+        velocidadVertical.y += gravedad * deltaTime;
+
+        // Dirección horizontal
         Vector3 direccion =
             transform.right * movimientoInput.x +
             transform.forward * movimientoInput.y;
@@ -206,30 +237,13 @@ public class personajeController : MonoBehaviour
             ? velocidadCorrer
             : velocidadCaminar;
 
-        controller.Move(
-            direccion * velocidad * Time.deltaTime);
+        // Combinar movimiento horizontal y vertical
+        Vector3 movimientoFinal =
+            direccion * velocidad +
+            Vector3.up * velocidadVertical.y;
 
-        if (controller.isGrounded && saltar)
-        {
-            velocidadVertical.y =
-                Mathf.Sqrt(fuerzaSalto * -2f * gravedad);
-
-            saltar = false;
-        }
-    }
-
-    private void AplicarGravedad()
-    {
-        if (controller == null)
-            return;
-
-        if (controller.isGrounded && velocidadVertical.y < 0)
-            velocidadVertical.y = -2f;
-
-        velocidadVertical.y += gravedad * Time.deltaTime;
-
-        controller.Move(
-            velocidadVertical * Time.deltaTime);
+        // Un solo Move por fotograma
+        controller.Move(movimientoFinal * deltaTime);
     }
 
     private void SonidosPasos()
