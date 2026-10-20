@@ -202,7 +202,6 @@ GameObject:
   - component: {fileID: 637432846336902170}
   - component: {fileID: 6376673420448355968}
   - component: {fileID: 1586743446365670159}
-  - component: {fileID: 5003045673457776243}
   - component: {fileID: 6831326990684242193}
   - component: {fileID: 8503245462199421679}
   - component: {fileID: 3448181507204151148}
@@ -365,18 +364,7 @@ MonoBehaviour:
   tiempoCuracion: 3
   barraProgresoCuracion: {fileID: 0}
   panelCuracionUI: {fileID: 0}
---- !u!114 &5003045673457776243
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4324488578026664427}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a1cc40ad09f7e0f4b911e792f47501f7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: '::'
+  pantallaMuerte: {fileID: 0}
 --- !u!114 &6831326990684242193
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -590,6 +578,8 @@ MonoBehaviour:
   linterna: {fileID: 5788644236253247936}
   puntuacion: {fileID: 0}
   saludJugador: {fileID: 1586743446365670159}
+  panelPausa: {fileID: 0}
+  textoComprar: {fileID: 0}
 --- !u!143 &3448181507204151148
 CharacterController:
   m_ObjectHideFlags: 0
@@ -634,6 +624,8 @@ MonoBehaviour:
   segundaArma: {fileID: 1129815697894120637}
   UIseleccionadaUno: {fileID: 0}
   UIseleccionadaDos: {fileID: 0}
+  UIseleccionadaBotiquin: {fileID: 0}
+  saludJugador: {fileID: 0}
   primariaActiva: 1
   fusilDesbloqueado: 0
 --- !u!95 &1229332331924758628
@@ -696,8 +688,8 @@ MonoBehaviour:
   m_PositionModel:
     SynchronizeEnabled: 1
     TeleportEnabled: 1
-    TeleportIfDistanceGreaterThan: 3
-    InterpolateOption: 2
+    TeleportIfDistanceGreaterThan: 5
+    InterpolateOption: 0
     InterpolateMoveTowardsSpeed: 1
     InterpolateLerpSpeed: 1
     ExtrapolateOption: 0

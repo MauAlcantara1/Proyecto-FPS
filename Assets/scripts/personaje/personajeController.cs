@@ -54,7 +54,15 @@ public class personajeController : MonoBehaviour
     private void Start()
     {
         if (!EsJugadorLocal())
+        {
+            Rigidbody rb = GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.useGravity = false;
+                rb.isKinematic = true;
+            }
             return;
+        }
 
         pausa = false;
         Time.timeScale = 1f;
