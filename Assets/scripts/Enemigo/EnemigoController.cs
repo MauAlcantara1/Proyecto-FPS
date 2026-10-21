@@ -67,11 +67,6 @@ public class EnemigoController : MonoBehaviourPun, IPunInstantiateMagicCallback
     private void Start()
     {
         int dificultad = SelectorPartida.Dificultad;
-
-        Debug.Log(dificultad == 0
-            ? "Enemigo en dificultad Fácil"
-            : "Enemigo en dificultad Difícil");
-
         if (hordaManager == null)
             hordaManager = FindFirstObjectByType<HordaManager>();
 

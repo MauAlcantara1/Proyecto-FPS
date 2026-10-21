@@ -210,7 +210,6 @@ public class personajeController : MonoBehaviour
             menuPausa.MostrarPausa();
         }
 
-        Debug.Log("Jugador local en pausa.");
     }
 
     public void ReanudarJuego()
