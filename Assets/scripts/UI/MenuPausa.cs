@@ -4,9 +4,13 @@ using Photon.Pun;
 
 public class MenuPausa : MonoBehaviourPunCallbacks
 {
-    [Header("Paneles")]
+    [Header("Contenedor General")]
+    [SerializeField] private GameObject contenedorMenuPausa;
+
+    [Header("Ventanas de las 3 Opciones")]
     [SerializeField] private GameObject panelPausa;
     [SerializeField] private GameObject panelConfiguracion;
+    [SerializeField] private GameObject panelSalir;
 
     [Header("Escenas")]
     [SerializeField] private string escenaMenu = "Menu";
@@ -19,30 +23,60 @@ public class MenuPausa : MonoBehaviourPunCallbacks
         OcultarPaneles();
     }
 
-    // Conectar al jugador local creado por Photon
     public void AsignarJugador(personajeController jugadorLocal)
     {
         jugador = jugadorLocal;
-
         Debug.Log("Menú de pausa conectado al jugador local.");
     }
 
     public void MostrarPausa()
     {
-        if (panelConfiguracion != null)
-            panelConfiguracion.SetActive(false);
+        if (contenedorMenuPausa != null)
+            contenedorMenuPausa.SetActive(true);
 
-        if (panelPausa != null)
-            panelPausa.SetActive(true);
+        MostrarVentanaContinuar();
     }
 
     public void OcultarPaneles()
     {
+        if (contenedorMenuPausa != null)
+            contenedorMenuPausa.SetActive(false);
+
         if (panelPausa != null)
             panelPausa.SetActive(false);
 
         if (panelConfiguracion != null)
             panelConfiguracion.SetActive(false);
+
+        if (panelSalir != null)
+            panelSalir.SetActive(false);
+    }
+
+
+    public void MostrarVentanaContinuar()
+    {
+        if (panelPausa != null) panelPausa.SetActive(true);
+        if (panelConfiguracion != null) panelConfiguracion.SetActive(false);
+        if (panelSalir != null) panelSalir.SetActive(false);
+    }
+
+    public void AbrirConfiguracion()
+    {
+        if (panelPausa != null) panelPausa.SetActive(false);
+        if (panelConfiguracion != null) panelConfiguracion.SetActive(true);
+        if (panelSalir != null) panelSalir.SetActive(false);
+    }
+
+    public void AbrirSalir()
+    {
+        if (panelPausa != null) panelPausa.SetActive(false);
+        if (panelConfiguracion != null) panelConfiguracion.SetActive(false);
+        if (panelSalir != null) panelSalir.SetActive(true);
+    }
+
+    public void CerrarConfiguracion()
+    {
+        MostrarVentanaContinuar();
     }
 
     public void Continuar()
@@ -53,28 +87,12 @@ public class MenuPausa : MonoBehaviourPunCallbacks
         }
         else
         {
-            Debug.LogWarning(
-                "No hay un jugador local asignado al menú de pausa."
-            );
+            OcultarPaneles();
+            Time.timeScale = 1f;
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+            Debug.LogWarning("No había jugador asignado, pero se reanudó el juego manualmente.");
         }
-    }
-
-    public void AbrirConfiguracion()
-    {
-        if (panelPausa != null)
-            panelPausa.SetActive(false);
-
-        if (panelConfiguracion != null)
-            panelConfiguracion.SetActive(true);
-    }
-
-    public void CerrarConfiguracion()
-    {
-        if (panelConfiguracion != null)
-            panelConfiguracion.SetActive(false);
-
-        if (panelPausa != null)
-            panelPausa.SetActive(true);
     }
 
     public void IrAlMenu()
@@ -84,7 +102,6 @@ public class MenuPausa : MonoBehaviourPunCallbacks
 
         Time.timeScale = 1f;
 
-        // Cada jugador abandona la sala por separado.
         if (PhotonNetwork.InRoom)
         {
             saliendoAlMenu = true;
