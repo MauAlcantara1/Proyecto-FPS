@@ -29,16 +29,12 @@ public class PhotonMultijugador : MonoBehaviourPunCallbacks
     [SerializeField] private Button botonIniciar;
     [SerializeField] private string escenaMultijugador;
 
-
     private void Start()
     {
         PhotonNetwork.AutomaticallySyncScene = true;
-
         Debug.Log("Conectando a Photon...");
-
         PhotonNetwork.ConnectUsingSettings();
     }
-
 
     // =========================================================
     // CONEXIÓN
@@ -47,9 +43,7 @@ public class PhotonMultijugador : MonoBehaviourPunCallbacks
     public override void OnConnectedToMaster()
     {
         conectado = true;
-
         Debug.Log("Conectado a Photon.");
-
         PhotonNetwork.JoinLobby();
     }
 
@@ -57,16 +51,9 @@ public class PhotonMultijugador : MonoBehaviourPunCallbacks
     {
         Debug.Log("==========================");
         Debug.Log("ENTRAMOS A LA SALA");
-
         Debug.Log("Código: " + PhotonNetwork.CurrentRoom.Name);
         Debug.Log("Jugador: " + PhotonNetwork.NickName);
-
-        Debug.Log(
-            "Jugadores: " +
-            PhotonNetwork.CurrentRoom.PlayerCount +
-            "/" +
-            PhotonNetwork.CurrentRoom.MaxPlayers
-        );
+        Debug.Log("Jugadores: " + PhotonNetwork.CurrentRoom.PlayerCount + "/" + PhotonNetwork.CurrentRoom.MaxPlayers);
 
         // Mostrar el menú de sala de espera
         if (menuMultijugador != null)
@@ -79,18 +66,20 @@ public class PhotonMultijugador : MonoBehaviourPunCallbacks
         // Mostrar dificultad elegida por el creador
         MostrarDificultad();
 
-        // Mostrar jugadores conectados
+        // Mostrar jugadores conectados y actualizar el estado del Loader
         ActualizarListaJugadores();
 
         Debug.Log("==========================");
     }
 
-
     public void CrearSala(string nombreJugador, int dificultad)
     {
         if (!conectado)
         {
-            Debug.LogWarning("Todavía no estamos conectados a Photon.");
+            // 1. AVISO SI AÚN NO CONECTA AL SERVIDOR (Apaga el loader automáticamente)
+            if (menuMultijugador != null)
+                menuMultijugador.MostrarError("Conectando al servidor, intenta de nuevo en unos segundos.");
+            
             return;
         }
 
@@ -101,7 +90,6 @@ public class PhotonMultijugador : MonoBehaviourPunCallbacks
 
         CrearSalaConCodigo();
     }
-
 
     private void CrearSalaConCodigo()
     {
@@ -125,23 +113,17 @@ public class PhotonMultijugador : MonoBehaviourPunCallbacks
         PhotonNetwork.CreateRoom(codigoSala, opciones);
     }
 
-
     public override void OnCreatedRoom()
     {
         Debug.Log("Sala creada correctamente.");
         Debug.Log("Código: " + PhotonNetwork.CurrentRoom.Name);
     }
 
-
     public override void OnCreateRoomFailed(short returnCode, string message)
     {
-        Debug.LogWarning(
-            "No se pudo crear la sala. Generando otro código..."
-        );
-
+        Debug.LogWarning("No se pudo crear la sala. Generando otro código...");
         CrearSalaConCodigo();
     }
-
 
     // =========================================================
     // UNIRSE
@@ -151,7 +133,10 @@ public class PhotonMultijugador : MonoBehaviourPunCallbacks
     {
         if (!conectado)
         {
-            Debug.LogWarning("Todavía no estamos conectados a Photon.");
+            // 2. AVISO SI AÚN NO CONECTA AL SERVIDOR
+            if (menuMultijugador != null)
+                menuMultijugador.MostrarError("Conectando al servidor, intenta de nuevo en unos segundos.");
+
             return;
         }
 
@@ -162,38 +147,37 @@ public class PhotonMultijugador : MonoBehaviourPunCallbacks
         PhotonNetwork.JoinRoom(codigo);
     }
 
-
     public override void OnJoinRoomFailed(short returnCode, string message)
     {
-        Debug.LogWarning(
-            "No se pudo entrar a la sala: " + message
-        );
+        Debug.LogWarning("No se pudo entrar a la sala: " + message);
+
+        // 3. ERROR AL UNIRSE (Código mal escrito, sala inexistente o llena)
+        if (menuMultijugador != null)
+        {
+            menuMultijugador.MostrarError("No se pudo unir: verifica el código o si la sala está llena.");
+        }
     }
-
-
 
     public override void OnDisconnected(DisconnectCause cause)
     {
         conectado = false;
+        Debug.LogError("Desconectado de Photon: " + cause);
 
-        Debug.LogError(
-            "Desconectado de Photon: " + cause
-        );
+        // 4. ERROR DE CAÍDA DE RED
+        if (menuMultijugador != null)
+        {
+            menuMultijugador.MostrarMenuPrincipal();
+            menuMultijugador.MostrarError("Se perdió la conexión con el servidor.");
+        }
     }
-
 
     private void MostrarDificultad()
     {
         if (!PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("Dificultad"))
             return;
 
-        int dificultad =
-            (int)PhotonNetwork.CurrentRoom.CustomProperties["Dificultad"];
-
-        Debug.Log(
-            "Dificultad: " +
-            (dificultad == 0 ? "Fácil" : "Difícil")
-        );
+        int dificultad = (int)PhotonNetwork.CurrentRoom.CustomProperties["Dificultad"];
+        Debug.Log("Dificultad: " + (dificultad == 0 ? "Fácil" : "Difícil"));
     }
 
     private void ActualizarListaJugadores()
@@ -220,29 +204,41 @@ public class PhotonMultijugador : MonoBehaviourPunCallbacks
                 PhotonNetwork.CurrentRoom.MaxPlayers +
                 " jugadores";
         }
+
+        // 5. CONTROL AUTOMÁTICO DEL LOADER EN LA SALA DE ESPERA
+        if (menuMultijugador != null)
+        {
+            if (jugadores.Length < PhotonNetwork.CurrentRoom.MaxPlayers)
+            {
+                // Si falta un jugador, se muestra el loader esperando
+                menuMultijugador.MostrarLoader("Esperando a otro jugador...");
+            }
+            else
+            {
+                // En cuanto están los 2 jugadores listos, ocultamos el loader
+                menuMultijugador.OcultarLoader();
+            }
+        }
+
         ActualizarBotonIniciar();
     }
 
     public override void OnPlayerEnteredRoom(Player newPlayer)
     {
-        Debug.Log(
-            newPlayer.NickName +
-            " entró a la sala."
-        );
-
+        Debug.Log(newPlayer.NickName + " entró a la sala.");
         ActualizarListaJugadores();
     }
 
     public override void OnPlayerLeftRoom(Player otherPlayer)
     {
-        Debug.Log(
-            otherPlayer.NickName +
-            " abandonó la sala."
-        );
-
+        Debug.Log(otherPlayer.NickName + " abandonó la sala.");
         ActualizarListaJugadores();
-    }
 
+        if (menuMultijugador != null)
+        {
+            menuMultijugador.MostrarError(otherPlayer.NickName + " abandonó la sala.");
+        }
+    }
 
     // =========================================================
     // SALIR DE LA SALA
@@ -254,7 +250,6 @@ public class PhotonMultijugador : MonoBehaviourPunCallbacks
             return;
 
         Debug.Log("Saliendo de la sala...");
-
         PhotonNetwork.LeaveRoom();
     }
 
@@ -265,17 +260,10 @@ public class PhotonMultijugador : MonoBehaviourPunCallbacks
         if (menuMultijugador != null)
             menuMultijugador.MostrarMenuPrincipal();
 
-        if (textoCodigo != null)
-            textoCodigo.text = "";
-
-        if (textoJugador1 != null)
-            textoJugador1.text = "";
-
-        if (textoJugador2 != null)
-            textoJugador2.text = "";
-
-        if (textoEstado != null)
-            textoEstado.text = "";
+        if (textoCodigo != null) textoCodigo.text = "";
+        if (textoJugador1 != null) textoJugador1.text = "";
+        if (textoJugador2 != null) textoJugador2.text = "";
+        if (textoEstado != null) textoEstado.text = "";
     }
 
     private void ActualizarBotonIniciar()
@@ -299,17 +287,22 @@ public class PhotonMultijugador : MonoBehaviourPunCallbacks
     {
         if (!PhotonNetwork.IsMasterClient)
         {
-            Debug.LogWarning("Solo el MasterClient puede iniciar la partida.");
+            if (menuMultijugador != null)
+                menuMultijugador.MostrarError("Solo el anfitrión puede iniciar la partida.");
             return;
         }
 
         if (PhotonNetwork.CurrentRoom.PlayerCount < 2)
         {
-            Debug.LogWarning("Falta un jugador para iniciar.");
+            if (menuMultijugador != null)
+                menuMultijugador.MostrarError("Falta un jugador para iniciar.");
             return;
         }
 
         Debug.Log("Iniciando partida...");
+
+        if (menuMultijugador != null)
+            menuMultijugador.MostrarLoader("Iniciando partida...");
 
         // Ya no permitimos que entren más jugadores
         PhotonNetwork.CurrentRoom.IsOpen = false;
@@ -320,12 +313,7 @@ public class PhotonMultijugador : MonoBehaviourPunCallbacks
 
     public override void OnMasterClientSwitched(Player newMasterClient)
     {
-        Debug.Log(
-            "Nuevo MasterClient: " +
-            newMasterClient.NickName
-        );
-
+        Debug.Log("Nuevo MasterClient: " + newMasterClient.NickName);
         ActualizarListaJugadores();
     }
-
 }

@@ -23,7 +23,7 @@ public class personajeController : MonoBehaviour
     [SerializeField] private personajeVida saludJugador;
 
     [Header("Pausa")]
-    [SerializeField] private GameObject panelPausa;
+    [SerializeField] private MenuPausa menuPausa;
 
     [Header("Interfaz de compra")]
     [SerializeField] private GameObject textoComprar;
@@ -54,19 +54,37 @@ public class personajeController : MonoBehaviour
     private void Start()
     {
         if (!EsJugadorLocal())
+        {
+            Rigidbody rb = GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.useGravity = false;
+                rb.isKinematic = true;
+            }
             return;
+        }
 
         pausa = false;
         Time.timeScale = 1f;
 
-        if (panelPausa != null)
+        pausa = false;
+        Time.timeScale = 1f;
+
+        if (menuPausa == null)
         {
-            panelPausa.SetActive(false);
+            menuPausa = FindFirstObjectByType<MenuPausa>();
+        }
+
+        if (menuPausa != null)
+        {
+            menuPausa.AsignarJugador(this);
+            menuPausa.OcultarPaneles();
         }
         else
         {
             Debug.LogWarning(
-                "No se ha asignado PanelPausa en el Inspector.");
+                "No se encontró MenuPausa en la escena."
+            );
         }
 
         if (textoComprar != null)
@@ -117,7 +135,6 @@ public class personajeController : MonoBehaviour
         }
 
         MoverJugador();
-        AplicarGravedad();
         SonidosPasos();
     }
 
@@ -168,17 +185,31 @@ public class personajeController : MonoBehaviour
 
         pausa = true;
 
-        if (panelPausa != null)
-            panelPausa.SetActive(true);
-
-        Time.timeScale = 0f;
+        // En multijugador NO detenemos el tiempo.
+        // En un jugador conservamos la pausa tradicional.
+        if (!PhotonNetwork.InRoom)
+        {
+            Time.timeScale = 0f;
+        }
 
         movimientoInput = Vector2.zero;
         saltar = false;
         correr = false;
 
+        // Liberar el cursor para utilizar los botones
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
         if (audioSource != null && audioSource.isPlaying)
+        {
             audioSource.Stop();
+        }
+
+        if (menuPausa != null)
+        {
+            menuPausa.MostrarPausa();
+        }
+
     }
 
     public void ReanudarJuego()
@@ -187,17 +218,56 @@ public class personajeController : MonoBehaviour
             return;
 
         pausa = false;
-        Time.timeScale = 1f;
 
-        if (panelPausa != null)
-            panelPausa.SetActive(false);
+        if (!PhotonNetwork.InRoom)
+        {
+            Time.timeScale = 1f;
+        }
+
+        if (menuPausa != null)
+        {
+            menuPausa.OcultarPaneles();
+        }
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+
+        movimientoInput = Vector2.zero;
+        saltar = false;
+        correr = false;
+
+        Debug.Log("Jugador local reanudó la partida.");
     }
 
     private void MoverJugador()
     {
-        if (controller == null)
+        if (controller == null || !controller.enabled)
             return;
 
+        float deltaTime = Time.deltaTime;
+
+        // Verificar si el personaje está en el suelo
+        bool estaEnSuelo = controller.isGrounded;
+
+        if (estaEnSuelo && velocidadVertical.y < 0f)
+        {
+            velocidadVertical.y = -2f;
+        }
+
+        // Salto
+        if (estaEnSuelo && saltar)
+        {
+            velocidadVertical.y = Mathf.Sqrt(
+                fuerzaSalto * -2f * gravedad
+            );
+
+            saltar = false;
+        }
+
+        // Aplicar gravedad
+        velocidadVertical.y += gravedad * deltaTime;
+
+        // Dirección horizontal
         Vector3 direccion =
             transform.right * movimientoInput.x +
             transform.forward * movimientoInput.y;
@@ -206,30 +276,13 @@ public class personajeController : MonoBehaviour
             ? velocidadCorrer
             : velocidadCaminar;
 
-        controller.Move(
-            direccion * velocidad * Time.deltaTime);
+        // Combinar movimiento horizontal y vertical
+        Vector3 movimientoFinal =
+            direccion * velocidad +
+            Vector3.up * velocidadVertical.y;
 
-        if (controller.isGrounded && saltar)
-        {
-            velocidadVertical.y =
-                Mathf.Sqrt(fuerzaSalto * -2f * gravedad);
-
-            saltar = false;
-        }
-    }
-
-    private void AplicarGravedad()
-    {
-        if (controller == null)
-            return;
-
-        if (controller.isGrounded && velocidadVertical.y < 0)
-            velocidadVertical.y = -2f;
-
-        velocidadVertical.y += gravedad * Time.deltaTime;
-
-        controller.Move(
-            velocidadVertical * Time.deltaTime);
+        // Un solo Move por fotograma
+        controller.Move(movimientoFinal * deltaTime);
     }
 
     private void SonidosPasos()
@@ -317,5 +370,10 @@ public class personajeController : MonoBehaviour
     {
         if (EsJugadorLocal() && pausa)
             Time.timeScale = 1f;
+    }
+
+    public bool EstaEnPausa()
+    {
+        return pausa;
     }
 }

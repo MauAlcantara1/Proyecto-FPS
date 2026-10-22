@@ -384,4 +384,21 @@ public class personajeVida : MonoBehaviourPun
             );
         }
     }
+
+    public int ObtenerVidaActual()
+    {
+        return vidaActual;
+    }
+
+    public int ObtenerVidaMaxima()
+    {
+        return vidaMaxima;
+    }
+
+    public void AsignarTextoVida(TMP_Text nuevoTexto)
+    {
+        textoVida = nuevoTexto;
+
+        ActualizarInterfaz();
+    }
 }
