@@ -1,4 +1,6 @@
+
 using UnityEngine;
+using Photon.Pun;
 
 public class CompraBotiquines : MonoBehaviour
 {
@@ -6,42 +8,87 @@ public class CompraBotiquines : MonoBehaviour
     [SerializeField] private int costo = 25;
     [SerializeField] private int cantidadBotiquines = 1;
 
-    [Header("Referencias")]
-    [SerializeField] private Puntuacion puntuacionManager;
-    [SerializeField] private personajeVida vidaJugador;
-
-    public void Comprar()
+    public void Comprar(
+        personajeController comprador,
+        Puntuacion puntuacionManager)
     {
-        if (puntuacionManager == null || vidaJugador == null)
+        if (comprador == null || puntuacionManager == null)
         {
             Debug.LogWarning(
-                "Asigna Puntuacion y personajeVida en el Inspector.", this);
+                "[COMPRA BOTIQUÍN] Falta el comprador o Puntuacion.",
+                this
+            );
+            return;
+        }
+
+        // Verificar que el comprador sea local.
+        PhotonView vista =
+            comprador.GetComponentInParent<PhotonView>();
+
+        if (PhotonNetwork.InRoom &&
+            (vista == null || !vista.IsMine))
+        {
+            Debug.LogWarning(
+                "[COMPRA BOTIQUÍN] El comprador no es local."
+            );
             return;
         }
 
         if (costo <= 0 || cantidadBotiquines <= 0)
         {
             Debug.LogWarning(
-                "El costo y la cantidad deben ser mayores que cero.", this);
+                "[COMPRA BOTIQUÍN] Configuración inválida.",
+                this
+            );
+            return;
+        }
+
+        // Buscar la vida del jugador comprador.
+        personajeVida vidaJugador =
+            comprador.GetComponentInParent<personajeVida>();
+
+        if (vidaJugador == null)
+        {
+            vidaJugador =
+                comprador.GetComponentInChildren<personajeVida>(true);
+        }
+
+        if (vidaJugador == null)
+        {
+            Debug.LogWarning(
+                "[COMPRA BOTIQUÍN] No se encontró personajeVida " +
+                "en " + comprador.name
+            );
             return;
         }
 
         if (!puntuacionManager.GastarPuntos(costo))
         {
-            Debug.Log("No tienes suficientes puntos para comprar botiquines.");
+            Debug.Log(
+                "[COMPRA BOTIQUÍN] Puntos insuficientes."
+            );
             return;
         }
 
         if (!vidaJugador.ComprarBotiquines(cantidadBotiquines))
         {
             puntuacionManager.DevolverPuntos(costo);
+
             Debug.LogWarning(
-                "No se pudo completar la compra. Se devolvieron los puntos.", this);
+                "[COMPRA BOTIQUÍN] Compra cancelada. " +
+                "Puntos devueltos."
+            );
             return;
         }
 
         Debug.Log(
-            "Compraste " + cantidadBotiquines +
-            " botiquín(es) por $" + costo);
+            "[COMPRA BOTIQUÍN] Compra realizada." +
+            "\nJugador: " + comprador.name +
+            "\nBotiquines comprados: " + cantidadBotiquines +
+            "\nBotiquines disponibles: " +
+            vidaJugador.ObtenerCantidadBotiquines() +
+            "\nPuntos restantes: " +
+            puntuacionManager.ObtenerPuntuacion()
+        );
     }
 }

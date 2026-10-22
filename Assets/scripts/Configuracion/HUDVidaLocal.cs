@@ -1,5 +1,6 @@
 
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 using Photon.Pun;
 
@@ -7,13 +8,17 @@ public class HUDVidaJugadorLocal : MonoBehaviour
 {
     [Header("Interfaz del jugador local")]
     [SerializeField] private TMP_Text textoVidaLocal;
+    [SerializeField] private Image imagenVidaLocal;
+
+    [Header("Curación")]
+    [SerializeField] private Slider barraProgresoCuracion;
+    [SerializeField] private GameObject panelCuracionUI;
 
     private personajeVida vidaLocal;
     private float proximaBusqueda = 0f;
 
     private void Update()
     {
-        // Si ya encontramos al jugador, no buscar nuevamente.
         if (vidaLocal != null)
             return;
 
@@ -27,13 +32,15 @@ public class HUDVidaJugadorLocal : MonoBehaviour
 
     private void BuscarJugadorLocal()
     {
-        if (textoVidaLocal == null)
+        if (textoVidaLocal == null ||
+            imagenVidaLocal == null ||
+            barraProgresoCuracion == null ||
+            panelCuracionUI == null)
         {
             Debug.LogError(
-                "[HUD] No está asignado el texto de vida local."
+                "[HUD VIDA] Faltan referencias en el Inspector.",
+                this
             );
-
-            enabled = false;
             return;
         }
 
@@ -48,7 +55,6 @@ public class HUDVidaJugadorLocal : MonoBehaviour
             PhotonView vista =
                 jugador.GetComponentInParent<PhotonView>();
 
-            // En multijugador solo conectar nuestro jugador.
             if (PhotonNetwork.InRoom)
             {
                 if (vista == null || !vista.IsMine)
@@ -57,12 +63,23 @@ public class HUDVidaJugadorLocal : MonoBehaviour
 
             vidaLocal = jugador;
 
-            // Conectar el HUD al jugador.
-            vidaLocal.AsignarTextoVida(textoVidaLocal);
+            // Asignar toda la interfaz local.
+            vidaLocal.AsignarInterfaz(
+                textoVidaLocal,
+                imagenVidaLocal,
+                barraProgresoCuracion,
+                panelCuracionUI
+            );
 
             Debug.Log(
-                "[HUD] Vida local conectada al jugador: " +
-                jugador.gameObject.name
+                "[HUD VIDA] Interfaz conectada correctamente." +
+                "\nJugador: " + jugador.name +
+                "\nTexto: " + textoVidaLocal.name +
+                "\nImagen: " + imagenVidaLocal.name +
+                "\nBarra curación: " +
+                barraProgresoCuracion.name +
+                "\nPanel curación: " +
+                panelCuracionUI.name
             );
 
             return;

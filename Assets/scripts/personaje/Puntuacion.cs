@@ -163,4 +163,31 @@ public class Puntuacion : MonoBehaviour
 
         puedeComprar = false;
     }
+
+    public void MostrarPanelCompra()
+    {
+        if (panelCompra != null)
+        {
+            panelCompra.SetActive(true);
+
+            Debug.Log("[COMPRA] Panel de compra activado.");
+        }
+        else
+        {
+            Debug.LogWarning(
+                "[COMPRA] No está asignado panelCompra.",
+                this
+            );
+        }
+    }
+
+    public void OcultarPanelCompra()
+    {
+        if (panelCompra != null)
+        {
+            panelCompra.SetActive(false);
+
+            Debug.Log("[COMPRA] Panel de compra desactivado.");
+        }
+    }
 }

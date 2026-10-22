@@ -318,6 +318,15 @@ public class personajeController : MonoBehaviour
 
     public void Curar(InputAction.CallbackContext context)
     {
+        Debug.Log(
+            "[CURACION DEBUG]" +
+            "\nJugador: " + gameObject.name +
+            "\nEs local: " + EsJugadorLocal() +
+            "\nEn pausa: " + pausa +
+            "\nSalud asignada: " + (saludJugador != null) +
+            "\nInput performed: " + context.performed +
+            "\nInput canceled: " + context.canceled
+        );
         if (!EsJugadorLocal() || pausa || saludJugador == null)
             return;
 
@@ -352,6 +361,7 @@ public class personajeController : MonoBehaviour
             textoComprar.SetActive(false);
     }
 
+
     public void comprar(InputAction.CallbackContext context)
     {
         if (!EsJugadorLocal() || pausa || !context.performed)
@@ -359,12 +369,21 @@ public class personajeController : MonoBehaviour
 
         if (zonaCompraActual == null)
         {
-            Debug.Log("No estás dentro de una zona de compra.");
+            Debug.Log(
+                "[COMPRA] No estás dentro de una zona de compra."
+            );
             return;
         }
 
-        zonaCompraActual.IntentarComprar();
+        Debug.Log(
+            "[COMPRA] Jugador intentando comprar en zona: " +
+            zonaCompraActual.ObtenerTipoCompra()
+        );
+
+        // Enviar al jugador que está comprando.
+        zonaCompraActual.IntentarComprar(this);
     }
+
 
     private void OnDestroy()
     {

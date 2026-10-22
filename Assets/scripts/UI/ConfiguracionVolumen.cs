@@ -1,104 +1,204 @@
+
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.UI;
 
 public class ConfiguracionVolumen : MonoBehaviour
 {
-    [Header("Referencia al Mixer")]
+    [Header("Audio Mixer")]
     [SerializeField] private AudioMixer audioMixer;
 
-    [Header("Sliders de UI")]
+    [Header("Sliders")]
+    [SerializeField] private Slider sliderMaster;
     [SerializeField] private Slider sliderMusica;
     [SerializeField] private Slider sliderSFX;
-    [SerializeField] private Slider sliderSistema;
 
+    [Header("Parámetros expuestos del Mixer")]
+    [SerializeField] private string parametroMaster = "MasterVolume";
+    [SerializeField] private string parametroMusica = "MusicVolume";
+    [SerializeField] private string parametroSFX = "SFXVolume";
+
+    // Guardado de preferencias
+    private const string PREF_MASTER = "VolumenMasterGuardado";
     private const string PREF_MUSICA = "VolumenMusicaGuardado";
     private const string PREF_SFX = "VolumenSFXGuardado";
-    private const string PREF_SISTEMA = "VolumenSistemaGuardado";
 
     private void Start()
     {
-        float volMusica = PlayerPrefs.GetFloat(PREF_MUSICA, 0.75f);
-        float volSFX = PlayerPrefs.GetFloat(PREF_SFX, 0.75f);
-        float volSis = PlayerPrefs.GetFloat(PREF_SISTEMA, 0.75f);
+        if (audioMixer == null)
+        {
+            Debug.LogError(
+                "[AUDIO] No está asignado MainMixer."
+            );
+            return;
+        }
+
+        AudioListener.volume = 1f;
+
+
+        float master = PlayerPrefs.GetFloat(
+            PREF_MASTER,
+            PlayerPrefs.GetFloat("VolumenSistemaGuardado", 0.75f)
+        );
+
+        float musica = PlayerPrefs.GetFloat(
+            PREF_MUSICA, 0.75f
+        );
+
+        float sfx = PlayerPrefs.GetFloat(
+            PREF_SFX, 0.75f
+        );
+
+        // Configurar sliders.
+        ConfigurarSlider(sliderMaster, master);
+        ConfigurarSlider(sliderMusica, musica);
+        ConfigurarSlider(sliderSFX, sfx);
+
+        // Aplicar volumen inicial.
+        AplicarVolumen(parametroMaster, master);
+        AplicarVolumen(parametroMusica, musica);
+        AplicarVolumen(parametroSFX, sfx);
+
+        // Registrar eventos.
+        if (sliderMaster != null)
+        {
+            sliderMaster.onValueChanged.AddListener(
+                CambiarVolumenMaster
+            );
+        }
 
         if (sliderMusica != null)
         {
-            sliderMusica.onValueChanged.RemoveAllListeners();
-            sliderMusica.minValue = 0.0001f;
-            sliderMusica.maxValue = 1f;
-            sliderMusica.SetValueWithoutNotify(volMusica);
-            sliderMusica.onValueChanged.AddListener(CambiarVolumenMusica);
+            sliderMusica.onValueChanged.AddListener(
+                CambiarVolumenMusica
+            );
         }
 
         if (sliderSFX != null)
         {
-            sliderSFX.onValueChanged.RemoveAllListeners();
-            sliderSFX.minValue = 0.0001f;
-            sliderSFX.maxValue = 1f;
-            sliderSFX.SetValueWithoutNotify(volSFX);
-            sliderSFX.onValueChanged.AddListener(CambiarVolumenSFX);
+            sliderSFX.onValueChanged.AddListener(
+                CambiarVolumenSFX
+            );
         }
 
-        if (sliderSistema != null)
+        Debug.Log(
+            "[AUDIO] MainMixer configurado correctamente."
+        );
+    }
+
+    private void ConfigurarSlider(Slider slider, float volumen)
+    {
+        if (slider == null)
         {
-            sliderSistema.onValueChanged.RemoveAllListeners();
-            sliderSistema.minValue = 0.0001f;
-            sliderSistema.maxValue = 1f;
-            sliderSistema.SetValueWithoutNotify(volSis);
-            sliderSistema.onValueChanged.AddListener(CambiarVolumenSis);
+            Debug.LogWarning(
+                "[AUDIO] Falta asignar un Slider."
+            );
+            return;
         }
 
-        AplicarMusicaAlMixer(volMusica);
-        AplicarSFXAlMixer(volSFX);
-        AplicarSisAlMixer(volSis);
+        slider.minValue = 0f;
+        slider.maxValue = 1f;
+        slider.wholeNumbers = false;
+
+        slider.SetValueWithoutNotify(
+            Mathf.Clamp01(volumen)
+        );
+    }
+
+    public void CambiarVolumenMaster(float valor)
+    {
+        AplicarVolumen(parametroMaster, valor);
+
+        PlayerPrefs.SetFloat(
+            PREF_MASTER,
+            Mathf.Clamp01(valor)
+        );
+
+        PlayerPrefs.Save();
     }
 
     public void CambiarVolumenMusica(float valor)
     {
-        AplicarMusicaAlMixer(valor);
-        PlayerPrefs.SetFloat(PREF_MUSICA, valor);
+        AplicarVolumen(parametroMusica, valor);
+
+        PlayerPrefs.SetFloat(
+            PREF_MUSICA,
+            Mathf.Clamp01(valor)
+        );
+
         PlayerPrefs.Save();
     }
 
     public void CambiarVolumenSFX(float valor)
     {
-        AplicarSFXAlMixer(valor);
-        PlayerPrefs.SetFloat(PREF_SFX, valor);
+        AplicarVolumen(parametroSFX, valor);
+
+        PlayerPrefs.SetFloat(
+            PREF_SFX,
+            Mathf.Clamp01(valor)
+        );
+
         PlayerPrefs.Save();
     }
 
-    public void CambiarVolumenSis(float valor)
+    private void AplicarVolumen(
+        string parametro,
+        float volumenLineal)
     {
-        AplicarSisAlMixer(valor);
-        PlayerPrefs.SetFloat(PREF_SISTEMA, valor);
-        PlayerPrefs.Save();
-    }
+        if (audioMixer == null)
+            return;
 
-    private void AplicarMusicaAlMixer(float valorLineal)
-    {
-        if (audioMixer != null)
+        float volumen = Mathf.Clamp01(volumenLineal);
+
+        // Convertir rango 0-1 a decibelios.
+        float decibelios = volumen <= 0.0001f
+            ? -80f
+            : Mathf.Log10(volumen) * 20f;
+
+        bool aplicado = audioMixer.SetFloat(
+            parametro,
+            decibelios
+        );
+
+        if (aplicado)
         {
-            float dB = Mathf.Log10(Mathf.Clamp(valorLineal, 0.0001f, 1f)) * 20f;
-            audioMixer.SetFloat("MusicVolume", dB);
+            Debug.Log(
+                "[AUDIO] Parámetro: " + parametro +
+                " | Volumen: " + volumen +
+                " | dB: " + decibelios
+            );
+        }
+        else
+        {
+            Debug.LogError(
+                "[AUDIO] No se encontró el parámetro: " +
+                parametro +
+                ". Revisa Exposed Parameters en MainMixer."
+            );
         }
     }
 
-    private void AplicarSFXAlMixer(float valorLineal)
+    private void OnDestroy()
     {
-        if (audioMixer != null)
+        if (sliderMaster != null)
         {
-            float dB = Mathf.Log10(Mathf.Clamp(valorLineal, 0.0001f, 1f)) * 20f;
-            audioMixer.SetFloat("SFXVolume", dB);
+            sliderMaster.onValueChanged.RemoveListener(
+                CambiarVolumenMaster
+            );
         }
-    }
 
-    private void AplicarSisAlMixer(float valorLineal)
-    {
-        if (audioMixer != null)
+        if (sliderMusica != null)
         {
-            float dB = Mathf.Log10(Mathf.Clamp(valorLineal, 0.0001f, 1f)) * 20f;
-            audioMixer.SetFloat("SystemVolume", dB);
+            sliderMusica.onValueChanged.RemoveListener(
+                CambiarVolumenMusica
+            );
+        }
+
+        if (sliderSFX != null)
+        {
+            sliderSFX.onValueChanged.RemoveListener(
+                CambiarVolumenSFX
+            );
         }
     }
 }

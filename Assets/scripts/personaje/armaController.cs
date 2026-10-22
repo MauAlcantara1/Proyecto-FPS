@@ -247,9 +247,6 @@ private void ActualizarMunicion()
 
         if (municionActual == null)
         {
-            Debug.LogWarning(
-                "No hay un componente MunicionArma en el arma activa."
-            );
             return;
         }
 

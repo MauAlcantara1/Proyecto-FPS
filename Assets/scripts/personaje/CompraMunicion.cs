@@ -1,4 +1,6 @@
+
 using UnityEngine;
+using Photon.Pun;
 
 public class CompraMunicion : MonoBehaviour
 {
@@ -6,77 +8,84 @@ public class CompraMunicion : MonoBehaviour
     [SerializeField] private int costo = 20;
     [SerializeField] private int cantidadMunicion = 30;
 
-    [Header("Referencias")]
-    [SerializeField] private Puntuacion puntuacionManager;
-    [SerializeField] private MunicionArma municionArma1;
-    [SerializeField] private MunicionArma municionArma2;
-
-    public void Comprar()
+    public void Comprar(
+        personajeController comprador,
+        Puntuacion puntuacionManager)
     {
-        if (puntuacionManager == null)
+        if (comprador == null || puntuacionManager == null)
         {
-            Debug.LogWarning("No está asignado Puntuacion.", this);
+            Debug.LogWarning(
+                "[COMPRA MUNICIÓN] Falta el comprador o Puntuacion.",
+                this
+            );
+            return;
+        }
+
+        // Solo el jugador local puede comprar.
+        PhotonView vista =
+            comprador.GetComponentInParent<PhotonView>();
+
+        if (PhotonNetwork.InRoom &&
+            (vista == null || !vista.IsMine))
+        {
+            Debug.LogWarning(
+                "[COMPRA MUNICIÓN] El comprador no es local."
+            );
             return;
         }
 
         if (costo <= 0 || cantidadMunicion <= 0)
         {
             Debug.LogWarning(
-                "El costo y la cantidad deben ser mayores que cero.", this);
+                "[COMPRA MUNICIÓN] Configuración inválida.",
+                this
+            );
             return;
         }
 
-        MunicionArma armaEquipada = ObtenerArmaEquipada();
+        // Buscar la única arma de fuego del comprador.
+        // IncludeInactive permite encontrarla
+        // aunque tenga equipado el machete.
+        MunicionArma armaJugador =
+            comprador.GetComponentInChildren<MunicionArma>(true);
 
-        if (armaEquipada == null)
+        if (armaJugador == null)
         {
             Debug.LogWarning(
-                "No se encontró un arma equipada para comprar munición.", this);
+                "[COMPRA MUNICIÓN] No se encontró MunicionArma " +
+                "en " + comprador.name
+            );
             return;
         }
 
         if (!puntuacionManager.GastarPuntos(costo))
         {
-            Debug.Log("No tienes suficientes puntos para comprar munición.");
+            Debug.Log(
+                "[COMPRA MUNICIÓN] Puntos insuficientes."
+            );
             return;
         }
 
-        if (!armaEquipada.AgregarMunicionAlmacenada(cantidadMunicion))
+        if (!armaJugador.AgregarMunicionAlmacenada(
+            cantidadMunicion))
         {
             puntuacionManager.DevolverPuntos(costo);
-            Debug.Log(
-                "No se pudo agregar munición. Se devolvieron los puntos.");
+
+            Debug.LogWarning(
+                "[COMPRA MUNICIÓN] Compra cancelada. " +
+                "Puntos devueltos."
+            );
             return;
         }
 
         Debug.Log(
-            "Compraste " + cantidadMunicion +
-            " balas para " + armaEquipada.name +
-            " por $" + costo);
-    }
-
-    private MunicionArma ObtenerArmaEquipada()
-    {
-        bool arma1Activa =
-            municionArma1 != null &&
-            municionArma1.gameObject.activeInHierarchy;
-
-        bool arma2Activa =
-            municionArma2 != null &&
-            municionArma2.gameObject.activeInHierarchy;
-
-        if (arma1Activa && !arma2Activa)
-            return municionArma1;
-
-        if (arma2Activa && !arma1Activa)
-            return municionArma2;
-
-        if (arma1Activa && arma2Activa)
-        {
-            Debug.LogWarning(
-                "Ambas armas están activas. No se compró munición.", this);
-        }
-
-        return null;
+            "[COMPRA MUNICIÓN] Compra realizada." +
+            "\nJugador: " + comprador.name +
+            "\nBalas compradas: " + cantidadMunicion +
+            "\nMunición total: " +
+            armaJugador.ObtenerMunicionAlmacenada() +
+            "\nPuntos restantes: " +
+            puntuacionManager.ObtenerPuntuacion()
+        );
     }
 }

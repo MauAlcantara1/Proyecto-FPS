@@ -5401,7 +5401,7 @@ GameObject:
   - component: {fileID: 177265661}
   m_Layer: 0
   m_Name: Botiquin
-  m_TagString: Untagged
+  m_TagString: ComprarArma
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -5437,8 +5437,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CompraBotiquines
   costo: 25
   cantidadBotiquines: 1
-  puntuacionManager: {fileID: 1094270711}
-  vidaJugador: {fileID: 0}
 --- !u!65 &177265660
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -5474,7 +5472,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ZonaCompra
   tipoCompra: 2
   puntuacionManager: {fileID: 1094270711}
-  compraMunicion: {fileID: 0}
+  compraMunicion: {fileID: 184130007}
   compraBotiquines: {fileID: 177265659}
 --- !u!1001 &181685165
 PrefabInstance:
@@ -5568,7 +5566,7 @@ GameObject:
   - component: {fileID: 184130009}
   m_Layer: 0
   m_Name: Municion
-  m_TagString: Untagged
+  m_TagString: ComprarArma
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -5604,9 +5602,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CompraMunicion
   costo: 20
   cantidadMunicion: 30
-  puntuacionManager: {fileID: 1094270711}
-  municionArma1: {fileID: 0}
-  municionArma2: {fileID: 0}
 --- !u!65 &184130008
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -5626,8 +5621,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2.9068575, y: 3.2616081, z: 4.6977615}
-  m_Center: {x: -1.1757894, y: -1.1308041, z: 0.06292534}
+  m_Size: {x: 3.9068575, y: 4.261608, z: 4.6977615}
+  m_Center: {x: -1.6757894, y: -0.63080406, z: 0.06292534}
 --- !u!114 &184130009
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5643,7 +5638,7 @@ MonoBehaviour:
   tipoCompra: 1
   puntuacionManager: {fileID: 1094270711}
   compraMunicion: {fileID: 184130007}
-  compraBotiquines: {fileID: 0}
+  compraBotiquines: {fileID: 177265659}
 --- !u!1 &186475587
 GameObject:
   m_ObjectHideFlags: 0
@@ -7031,7 +7026,7 @@ RectTransform:
   m_Father: {fileID: 1936898035}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -7927,12 +7922,12 @@ GameObject:
   - component: {fileID: 272366370}
   - component: {fileID: 272366369}
   m_Layer: 5
-  m_Name: Panel
+  m_Name: PanelCuracion
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &272366368
 RectTransform:
   m_ObjectHideFlags: 0
@@ -38211,7 +38206,7 @@ RectTransform:
   m_Father: {fileID: 591522657}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -47458,6 +47453,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   textoVidaLocal: {fileID: 824486923}
+  imagenVidaLocal: {fileID: 1390467894}
+  barraProgresoCuracion: {fileID: 385915977}
+  panelCuracionUI: {fileID: 272366367}
 --- !u!114 &1675702604
 MonoBehaviour:
   m_ObjectHideFlags: 0

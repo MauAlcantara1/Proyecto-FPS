@@ -174,6 +174,14 @@ public class personajeVida : MonoBehaviourPun
 
     public void IniciarCuracion()
     {
+        Debug.Log(
+            "[CURACION]" +
+            "\nSe llamó IniciarCuracion()" +
+            "\nPanel asignado: " + (panelCuracionUI != null) +
+            "\nSlider asignado: " + (barraProgresoCuracion != null) +
+            "\nBotiquines: " + cantidadBotiquines +
+            "\nVida: " + vidaActual
+        );
         if (!EsJugadorLocal())
             return;
 
