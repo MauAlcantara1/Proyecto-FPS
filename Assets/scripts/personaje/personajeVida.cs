@@ -39,6 +39,36 @@ public class personajeVida : MonoBehaviourPun
 
     private bool pantallaMuerteMostrada = false;
 
+    [Header("Incapacitación Multijugador")]
+    [SerializeField] private GameObject panelIncapacitado;
+
+    [Header("Reanimación Multijugador")]
+    [SerializeField, Min(0.5f)]
+    private float distanciaReanimacion = 2f;
+
+    [SerializeField, Min(1)]
+    private int vidaAlReanimar = 30;
+
+    public float ObtenerDistanciaReanimacion()
+    {
+        return distanciaReanimacion;
+    }
+    public bool EstaIncapacitado()
+    {
+        return PhotonNetwork.InRoom && vidaActual <= 0;
+    }
+
+    public void AsignarPanelIncapacitado(GameObject panel)
+    {
+        if (!EsJugadorLocal() || !PhotonNetwork.InRoom)
+            return;
+
+        panelIncapacitado = panel;
+
+        if (panelIncapacitado != null)
+            panelIncapacitado.SetActive(EstaIncapacitado());
+    }
+
     private bool EsJugadorLocal()
     {
         return !PhotonNetwork.InRoom || photonView.IsMine;
@@ -49,6 +79,23 @@ public class personajeVida : MonoBehaviourPun
         if (!EsJugadorLocal())
             return;
 
+        if (PhotonNetwork.InRoom)
+        {
+            HUDIncapacitadoLocal hud =
+                FindFirstObjectByType<HUDIncapacitadoLocal>();
+
+            if (hud != null)
+            {
+                hud.Conectar(this);
+            }
+            else
+            {
+                Debug.LogWarning(
+                    "No se encontró HUDIncapacitadoLocal."
+                );
+            }
+        }
+
         if (panelCuracionUI != null)
             panelCuracionUI.SetActive(false);
 
@@ -58,7 +105,6 @@ public class personajeVida : MonoBehaviourPun
         ActualizarInterfaz();
     }
 
-    // Asignar la interfaz del jugador local desde PhotonManager.
     public void AsignarInterfaz(
         TMP_Text texto,
         Image imagen,
@@ -170,8 +216,6 @@ public class personajeVida : MonoBehaviourPun
         );
     }
 
-    // SISTEMA DE BOTIQUÍN
-
     public void IniciarCuracion()
     {
         Debug.Log(
@@ -214,16 +258,12 @@ public class personajeVida : MonoBehaviourPun
     private IEnumerator ProcesoCuracion()
     {
         estaCurandose = true;
-
         if (panelCuracionUI != null)
             panelCuracionUI.SetActive(true);
-
         float tiempoTranscurrido = 0f;
-
         while (tiempoTranscurrido < tiempoCuracion)
         {
             tiempoTranscurrido += Time.deltaTime;
-
             if (barraProgresoCuracion != null)
             {
                 barraProgresoCuracion.value =
@@ -231,64 +271,47 @@ public class personajeVida : MonoBehaviourPun
                         ? Mathf.Clamp01(tiempoTranscurrido / tiempoCuracion)
                         : 1f;
             }
-
             yield return null;
         }
-
         int vidaFaltante = vidaMaxima - vidaActual;
-
         int cantidadACurar = Mathf.RoundToInt(
             vidaFaltante * 0.80f
         );
-
         if (cantidadACurar < 1)
             cantidadACurar = 1;
-
         vidaActual = Mathf.Clamp(
             vidaActual + cantidadACurar,
             0,
             vidaMaxima
         );
-
         cantidadBotiquines = Mathf.Max(0, cantidadBotiquines - 1);
-
         estaCurandose = false;
         corrutinaCuracion = null;
-
         if (barraProgresoCuracion != null)
             barraProgresoCuracion.value = 0f;
-
         if (panelCuracionUI != null)
             panelCuracionUI.SetActive(false);
-
         ActualizarInterfaz();
         SincronizarVida();
-
         Debug.Log(
             "Curación completada. Botiquines disponibles: " +
             cantidadBotiquines
         );
     }
 
-    // Comprar botiquines adicionales.
     public bool ComprarBotiquines(int cantidad)
     {
         if (!EsJugadorLocal())
             return false;
-
         if (cantidad <= 0 || !EstaVivo())
             return false;
-
         cantidadBotiquines += cantidad;
-
         Debug.Log(
             "Botiquines disponibles: " + cantidadBotiquines
         );
-
         return true;
     }
 
-    // NUEVO: consultar la cantidad para el indicador de armaController.
     public int ObtenerCantidadBotiquines()
     {
         return cantidadBotiquines;
@@ -362,24 +385,46 @@ public class personajeVida : MonoBehaviourPun
         if (!EsJugadorLocal())
             return;
 
-        pantallaMuerteMostrada = true;
+        if (PhotonNetwork.InRoom)
+        {
+            if (estaCurandose)
+                CancelarCuracion();
+            if (panelIncapacitado != null)
+            {
+                panelIncapacitado.SetActive(true);
+            }
+            else
+            {
+            }
+            return;
+        }
 
+        GameOverMultijugador gameOver =
+            FindFirstObjectByType<GameOverMultijugador>();
+
+        if (gameOver != null)
+        {
+            gameOver.RegistrarIncapacitado();
+        }
+        else
+        {
+            Debug.LogWarning(
+                "No se encontró GameOverMultijugador."
+            );
+        }
+
+        pantallaMuerteMostrada = true;
         if (estaCurandose)
             CancelarCuracion();
-
         int puntuacionFinal = 0;
-
         Puntuacion puntuacion =
             FindFirstObjectByType<Puntuacion>();
-
         if (puntuacion != null)
         {
             puntuacionFinal =
                 puntuacion.ObtenerPuntuacionTotalPartida();
-
             puntuacion.RegistrarFinPartida();
         }
-
         if (pantallaMuerte != null)
         {
             pantallaMuerte.MostrarPantallaMuerte(puntuacionFinal);
@@ -402,11 +447,102 @@ public class personajeVida : MonoBehaviourPun
     {
         return vidaMaxima;
     }
-
     public void AsignarTextoVida(TMP_Text nuevoTexto)
     {
         textoVida = nuevoTexto;
 
         ActualizarInterfaz();
+    }
+
+    public void SolicitarReanimacionAutomatica()
+    {
+        if (!PhotonNetwork.InRoom)
+            return;
+
+        if (photonView.IsMine)
+            return;
+
+        if (!EstaIncapacitado())
+            return;
+
+        if (photonView.Owner == null)
+            return;
+
+        photonView.RPC(
+            nameof(RPC_ReanimarJugador),
+            photonView.Owner
+        );
+    }
+
+    [PunRPC]
+    private void RPC_ReanimarJugador(PhotonMessageInfo info)
+    {
+        if (GameOverMultijugador.PartidaTerminada)
+            return;
+        if (!PhotonNetwork.InRoom || !photonView.IsMine)
+            return;
+
+        if (!EstaIncapacitado() || info.Sender == null)
+            return;
+
+        // Verificar quién está solicitando la reanimación.
+        personajeVida[] jugadores =
+            FindObjectsByType<personajeVida>(
+                FindObjectsSortMode.None
+            );
+
+        personajeVida compañero = null;
+
+        foreach (personajeVida jugador in jugadores)
+        {
+            if (jugador == null || jugador == this)
+                continue;
+
+            PhotonView vista = jugador.photonView;
+
+            if (vista == null)
+                continue;
+
+            if (vista.OwnerActorNr == info.Sender.ActorNumber)
+            {
+                compañero = jugador;
+                break;
+            }
+        }
+
+        if (compañero == null || !compañero.EstaVivo())
+            return;
+
+        float distancia = Vector3.Distance(
+            transform.position,
+            compañero.transform.position
+        );
+
+        if (distancia > distanciaReanimacion + 0.5f)
+            return;
+
+        vidaActual = Mathf.Clamp(
+            vidaAlReanimar,
+            1,
+            vidaMaxima
+        );
+
+        siguienteTiempoDaño = Time.time + segundosInmunidad;
+        if (panelIncapacitado != null)
+            panelIncapacitado.SetActive(false);
+        ActualizarInterfaz();
+        SincronizarVida();
+
+        GameOverMultijugador gameOver =
+            FindFirstObjectByType<GameOverMultijugador>();
+
+        if (gameOver != null)
+        {
+            gameOver.RegistrarReanimado();
+        }
+
+        Debug.Log(
+            "Jugador reanimado con " + vidaActual + " HP."
+        );
     }
 }

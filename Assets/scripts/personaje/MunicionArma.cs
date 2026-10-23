@@ -23,10 +23,12 @@ public class MunicionArma : MonoBehaviour
 
     private bool recargando = false;
     private PhotonView vistaJugador;
+    private personajeVida saludJugador;
 
     private void Awake()
     {
         vistaJugador = GetComponentInParent<PhotonView>();
+        saludJugador = GetComponentInParent<personajeVida>();
     }
 
     private bool EsJugadorLocal()
@@ -59,6 +61,11 @@ public class MunicionArma : MonoBehaviour
 
     public void GastarBala()
     {
+        if (saludJugador != null &&
+            saludJugador.EstaIncapacitado())
+        {
+            return;
+        }
         if (!EsJugadorLocal() || !PuedeDisparar())
             return;
 

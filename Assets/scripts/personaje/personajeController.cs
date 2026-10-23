@@ -122,25 +122,50 @@ public class personajeController : MonoBehaviour
 
     private void Update()
     {
+
+        if (GameOverMultijugador.PartidaTerminada)
+            return;
         if (!EsJugadorLocal())
             return;
 
-        if (pausa)
-            return;
+        bool incapacitado =
+            saludJugador != null &&
+            saludJugador.EstaIncapacitado();
 
-        if (saludJugador != null && saludJugador.EstaCurandose())
+        bool controlesBloqueados = pausa || incapacitado;
+
+        if (controlesBloqueados)
+        {
+            movimientoInput = Vector2.zero;
+            saltar = false;
+            correr = false;
+
+            if (audioSource != null && audioSource.isPlaying)
+                audioSource.Stop();
+
+            if (incapacitado && textoComprar != null)
+                textoComprar.SetActive(false);
+
+            
+            MoverJugador(false);
+
+            return;
+        }
+
+        if (saludJugador != null &&
+            saludJugador.EstaCurandose())
         {
             if (movimientoInput.magnitude > 0.1f || saltar)
                 saludJugador.CancelarCuracion();
         }
 
-        MoverJugador();
+        MoverJugador(true);
         SonidosPasos();
     }
 
     public void Movimiento(InputAction.CallbackContext context)
     {
-        if (!EsJugadorLocal() || pausa)
+        if (!EsJugadorLocal() || pausa || EstaIncapacitado())
             return;
 
         movimientoInput = context.ReadValue<Vector2>();
@@ -148,7 +173,7 @@ public class personajeController : MonoBehaviour
 
     public void Linterna(InputAction.CallbackContext context)
     {
-        if (!EsJugadorLocal() || pausa)
+        if (!EsJugadorLocal() || pausa || EstaIncapacitado())
             return;
 
         if (context.performed && linterna != null)
@@ -157,7 +182,7 @@ public class personajeController : MonoBehaviour
 
     public void Salto(InputAction.CallbackContext context)
     {
-        if (!EsJugadorLocal() || pausa)
+        if (!EsJugadorLocal() || pausa || EstaIncapacitado())
             return;
 
         if (context.performed)
@@ -185,8 +210,6 @@ public class personajeController : MonoBehaviour
 
         pausa = true;
 
-        // En multijugador NO detenemos el tiempo.
-        // En un jugador conservamos la pausa tradicional.
         if (!PhotonNetwork.InRoom)
         {
             Time.timeScale = 0f;
@@ -196,7 +219,6 @@ public class personajeController : MonoBehaviour
         saltar = false;
         correr = false;
 
-        // Liberar el cursor para utilizar los botones
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
@@ -239,23 +261,20 @@ public class personajeController : MonoBehaviour
         Debug.Log("Jugador local reanudó la partida.");
     }
 
-    private void MoverJugador()
+    private void MoverJugador(bool permitirMovimiento)
     {
         if (controller == null || !controller.enabled)
             return;
 
         float deltaTime = Time.deltaTime;
 
-        // Verificar si el personaje está en el suelo
         bool estaEnSuelo = controller.isGrounded;
 
         if (estaEnSuelo && velocidadVertical.y < 0f)
         {
             velocidadVertical.y = -2f;
         }
-
-        // Salto
-        if (estaEnSuelo && saltar)
+        if (permitirMovimiento && estaEnSuelo && saltar)
         {
             velocidadVertical.y = Mathf.Sqrt(
                 fuerzaSalto * -2f * gravedad
@@ -263,26 +282,42 @@ public class personajeController : MonoBehaviour
 
             saltar = false;
         }
-
-        // Aplicar gravedad
         velocidadVertical.y += gravedad * deltaTime;
+        Vector3 movimientoHorizontal = Vector3.zero;
+        if (permitirMovimiento)
+        {
+            Vector3 adelante = Vector3.ProjectOnPlane(
+                transform.forward,
+                Vector3.up
+            ).normalized;
 
-        // Dirección horizontal
-        Vector3 direccion =
-            transform.right * movimientoInput.x +
-            transform.forward * movimientoInput.y;
+            Vector3 derecha = Vector3.ProjectOnPlane(
+                transform.right,
+                Vector3.up
+            ).normalized;
 
-        float velocidad = correr
-            ? velocidadCorrer
-            : velocidadCaminar;
+            Vector3 direccion =
+                derecha * movimientoInput.x +
+                adelante * movimientoInput.y;
 
-        // Combinar movimiento horizontal y vertical
+            direccion = Vector3.ClampMagnitude(
+                direccion,
+                1f
+            );
+
+            float velocidad = correr
+                ? velocidadCorrer
+                : velocidadCaminar;
+
+            movimientoHorizontal = direccion * velocidad;
+        }
+
         Vector3 movimientoFinal =
-            direccion * velocidad +
+            movimientoHorizontal +
             Vector3.up * velocidadVertical.y;
-
-        // Un solo Move por fotograma
-        controller.Move(movimientoFinal * deltaTime);
+        controller.Move(
+            movimientoFinal * deltaTime
+        );
     }
 
     private void SonidosPasos()
@@ -318,17 +353,14 @@ public class personajeController : MonoBehaviour
 
     public void Curar(InputAction.CallbackContext context)
     {
-        Debug.Log(
-            "[CURACION DEBUG]" +
-            "\nJugador: " + gameObject.name +
-            "\nEs local: " + EsJugadorLocal() +
-            "\nEn pausa: " + pausa +
-            "\nSalud asignada: " + (saludJugador != null) +
-            "\nInput performed: " + context.performed +
-            "\nInput canceled: " + context.canceled
-        );
-        if (!EsJugadorLocal() || pausa || saludJugador == null)
+
+        if (!EsJugadorLocal() ||
+            pausa ||
+            EstaIncapacitado() ||
+            saludJugador == null)
+        {
             return;
+        }
 
         if (context.performed)
             saludJugador.IniciarCuracion();
@@ -338,7 +370,7 @@ public class personajeController : MonoBehaviour
 
     public void EntrarZonaCompra(ZonaCompra zona)
     {
-        if (!EsJugadorLocal() || zona == null)
+        if (!EsJugadorLocal() || pausa || EstaIncapacitado() || zona == null)
             return;
 
         zonaCompraActual = zona;
@@ -394,5 +426,11 @@ public class personajeController : MonoBehaviour
     public bool EstaEnPausa()
     {
         return pausa;
+    }
+
+    private bool EstaIncapacitado()
+    {
+        return saludJugador != null &&
+            saludJugador.EstaIncapacitado();
     }
 }

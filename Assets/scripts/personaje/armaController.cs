@@ -99,8 +99,17 @@ public class armaController : MonoBehaviour
     {
         if (!EsJugadorLocal())
         return;
-        // Actualiza el indicador según los botiquines disponibles.
         ActualizarIndicadorBotiquin();
+
+        if (EstaIncapacitado())
+        {
+            disparando = false;
+
+            if (animatorActual != null)
+                animatorActual.SetBool("Disparo", false);
+
+            return;
+        }
 
         if (!disparando)
             return;
@@ -229,8 +238,9 @@ private void ActualizarMunicion()
 
     public void Cambio(InputAction.CallbackContext context)
     {
-        if (!EsJugadorLocal())
-            return;
+    if (!EsJugadorLocal() || EstaIncapacitado())
+        return;
+
         if (context.performed && animatorActual != null)
         {
             animatorActual.SetTrigger("Cambio");
@@ -240,7 +250,7 @@ private void ActualizarMunicion()
 
     public void Recarga(InputAction.CallbackContext context)
     {
-        if (!EsJugadorLocal())
+        if (!EsJugadorLocal() || EstaIncapacitado())
             return;
         if (!context.performed)
             return;
@@ -252,9 +262,6 @@ private void ActualizarMunicion()
 
         if (!municionActual.PuedeRecargar())
         {
-            Debug.Log(
-                "No se puede recargar: cargador lleno, sin reserva o recarga en curso."
-            );
             return;
         }
 
@@ -266,7 +273,7 @@ private void ActualizarMunicion()
 
     public void Disparo(InputAction.CallbackContext context)
     {
-        if (!EsJugadorLocal())
+        if (!EsJugadorLocal() || EstaIncapacitado())
             return;
         if (context.performed)
         {
@@ -291,11 +298,9 @@ private void ActualizarMunicion()
 
     public void CambiarArma()
     {
-        if (!EsJugadorLocal())
+        if (!EsJugadorLocal() || EstaIncapacitado())
             return;
         primariaActiva = !primariaActiva;
-
-        Debug.Log("Cambio de arma2");
 
         disparando = false;
 
@@ -316,17 +321,11 @@ private void ActualizarMunicion()
 
     public void DesbloquearFusil()
     {
-        if (!EsJugadorLocal())
+        if (!EsJugadorLocal() || EstaIncapacitado())
             return;
-        if (fusilDesbloqueado)
-        {
-            Debug.Log("El fusil ya está desbloqueado.");
-            return;
-        }
 
         if (fusil == null)
         {
-            Debug.LogError("No se ha asignado el objeto Fusil.");
             return;
         }
 
@@ -337,7 +336,6 @@ private void ActualizarMunicion()
         ActualizarArmaVisible();
         ActualizarAnimator();
 
-        Debug.Log("Fusil desbloqueado y equipado.");
     }
 
     public void AsignarInterfaz(
@@ -395,12 +393,16 @@ private void ActualizarMunicion()
 
             return;
         }
-
-        // No existe un arma con munición seleccionada.
         if (textoCargadorHUD != null)
             textoCargadorHUD.text = "--";
 
         if (textoMunicionHUD != null)
             textoMunicionHUD.text = "--";
+    }
+
+    private bool EstaIncapacitado()
+    {
+        return saludJugador != null &&
+            saludJugador.EstaIncapacitado();
     }
 }
