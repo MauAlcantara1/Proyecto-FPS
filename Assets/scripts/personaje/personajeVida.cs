@@ -377,6 +377,7 @@ public class personajeVida : MonoBehaviourPun
         return estaCurandose;
     }
 
+
     private void ComprobarMuerte()
     {
         if (pantallaMuerteMostrada || EstaVivo())
@@ -385,49 +386,76 @@ public class personajeVida : MonoBehaviourPun
         if (!EsJugadorLocal())
             return;
 
+        // ==========================================
+        // MULTIJUGADOR
+        // ==========================================
         if (PhotonNetwork.InRoom)
         {
             if (estaCurandose)
                 CancelarCuracion();
+
+            // Mostrar panel de incapacitación.
             if (panelIncapacitado != null)
             {
                 panelIncapacitado.SetActive(true);
             }
             else
             {
+                Debug.LogWarning(
+                    "[VIDA] No se encontró el panel de incapacitación."
+                );
             }
+
+            // IMPORTANTE:
+            // Notificar a Photon que este jugador cayó.
+            GameOverMultijugador gameOver =
+                FindFirstObjectByType<GameOverMultijugador>();
+
+            if (gameOver != null)
+            {
+                gameOver.RegistrarIncapacitado();
+
+                Debug.Log(
+                    "[VIDA] Incapacitación registrada en Photon."
+                );
+            }
+            else
+            {
+                Debug.LogError(
+                    "[VIDA] No se encontró GameOverMultijugador."
+                );
+            }
+
+            // No ejecutar la muerte de un jugador individual.
             return;
         }
 
-        GameOverMultijugador gameOver =
-            FindFirstObjectByType<GameOverMultijugador>();
-
-        if (gameOver != null)
-        {
-            gameOver.RegistrarIncapacitado();
-        }
-        else
-        {
-            Debug.LogWarning(
-                "No se encontró GameOverMultijugador."
-            );
-        }
-
+        // ==========================================
+        // UN JUGADOR (SE CONSERVA ORIGINAL)
+        // ==========================================
         pantallaMuerteMostrada = true;
+
         if (estaCurandose)
             CancelarCuracion();
+
         int puntuacionFinal = 0;
+
         Puntuacion puntuacion =
             FindFirstObjectByType<Puntuacion>();
+
         if (puntuacion != null)
         {
             puntuacionFinal =
                 puntuacion.ObtenerPuntuacionTotalPartida();
+
             puntuacion.RegistrarFinPartida();
         }
+
         if (pantallaMuerte != null)
         {
-            pantallaMuerte.MostrarPantallaMuerte(puntuacionFinal);
+            pantallaMuerte.MostrarPantallaMuerte(
+                puntuacionFinal
+            );
         }
         else
         {
