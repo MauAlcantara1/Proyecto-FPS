@@ -249,4 +249,7 @@ public class MenuMultijugador : MonoBehaviour
         MostrarLoader("Uniéndose a la sala...");
         photonMultijugador.UnirseASala(nombre, codigo);
     }
+
+
+
 }

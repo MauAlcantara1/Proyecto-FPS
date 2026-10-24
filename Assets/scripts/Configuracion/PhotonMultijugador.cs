@@ -43,12 +43,17 @@ public class PhotonMultijugador : MonoBehaviourPunCallbacks
     public override void OnConnectedToMaster()
     {
         conectado = true;
-        Debug.Log("Conectado a Photon.");
+
+        Debug.Log("[PHOTON] Conectado al servidor maestro.");
+
+        DiagnosticarConexion("CONEXIÓN AL SERVIDOR");
+
         PhotonNetwork.JoinLobby();
     }
 
     public override void OnJoinedRoom()
     {
+        DiagnosticarConexion("ENTRADA A SALA CONFIRMADA");
         Debug.Log("==========================");
         Debug.Log("ENTRAMOS A LA SALA");
         Debug.Log("Código: " + PhotonNetwork.CurrentRoom.Name);
@@ -115,10 +120,15 @@ public class PhotonMultijugador : MonoBehaviourPunCallbacks
 
     public override void OnCreatedRoom()
     {
-        Debug.Log("Sala creada correctamente.");
-        Debug.Log("Código: " + PhotonNetwork.CurrentRoom.Name);
-    }
+        Debug.Log(
+            "[PHOTON HOST] SALA CREADA CORRECTAMENTE." +
+            "\nCódigo: " + PhotonNetwork.CurrentRoom.Name +
+            "\nJugadores: " + PhotonNetwork.CurrentRoom.PlayerCount +
+            "\nSala abierta: " + PhotonNetwork.CurrentRoom.IsOpen
+        );
 
+        DiagnosticarConexion("SALA CREADA");
+    }
     public override void OnCreateRoomFailed(short returnCode, string message)
     {
         Debug.LogWarning("No se pudo crear la sala. Generando otro código...");
@@ -131,30 +141,70 @@ public class PhotonMultijugador : MonoBehaviourPunCallbacks
 
     public void UnirseASala(string nombreJugador, string codigo)
     {
-        if (!conectado)
+        if (!conectado || !PhotonNetwork.IsConnectedAndReady)
         {
-            // 2. AVISO SI AÚN NO CONECTA AL SERVIDOR
             if (menuMultijugador != null)
-                menuMultijugador.MostrarError("Conectando al servidor, intenta de nuevo en unos segundos.");
+            {
+                menuMultijugador.MostrarError(
+                    "Aún no está lista la conexión a Photon."
+                );
+            }
 
             return;
         }
 
         PhotonNetwork.NickName = nombreJugador;
 
-        Debug.Log("Intentando entrar a la sala: " + codigo);
+        codigo = codigo.Trim();
 
-        PhotonNetwork.JoinRoom(codigo);
-    }
+        DiagnosticarConexion("ANTES DE UNIRSE");
 
-    public override void OnJoinRoomFailed(short returnCode, string message)
-    {
-        Debug.LogWarning("No se pudo entrar a la sala: " + message);
+        Debug.Log(
+            "[PHOTON INVITADO] Intentando entrar." +
+            "\nCódigo solicitado: [" + codigo + "]"
+        );
 
-        // 3. ERROR AL UNIRSE (Código mal escrito, sala inexistente o llena)
-        if (menuMultijugador != null)
+        bool solicitudEnviada = PhotonNetwork.JoinRoom(codigo);
+
+        Debug.Log(
+            "[PHOTON INVITADO] Solicitud enviada: " +
+            solicitudEnviada
+        );
+
+        if (!solicitudEnviada && menuMultijugador != null)
         {
-            menuMultijugador.MostrarError("No se pudo unir: verifica el código o si la sala está llena.");
+            menuMultijugador.MostrarError(
+                "Photon todavía no permite solicitar la entrada."
+            );
+        }
+    }
+    public override void OnJoinRoomFailed(
+        short returnCode,
+        string message)
+    {
+        Debug.LogError(
+            "[PHOTON] ERROR AL UNIRSE." +
+            "\nCódigo Photon: " + returnCode +
+            "\nMensaje: " + message
+        );
+
+        DiagnosticarConexion("ERROR AL UNIRSE");
+
+        if (menuMultijugador == null)
+            return;
+
+        if (returnCode == 32758)
+        {
+            menuMultijugador.MostrarError(
+                "La sala no existe en este servidor. " +
+                "Verifica el código y la región."
+            );
+        }
+        else
+        {
+            menuMultijugador.MostrarError(
+                "No se pudo entrar: " + message
+            );
         }
     }
 
@@ -315,5 +365,25 @@ public class PhotonMultijugador : MonoBehaviourPunCallbacks
     {
         Debug.Log("Nuevo MasterClient: " + newMasterClient.NickName);
         ActualizarListaJugadores();
+    }
+
+    private void DiagnosticarConexion(string etapa)
+    {
+        Debug.Log(
+            "\n========== PHOTON ==========" +
+            "\nEtapa: " + etapa +
+            "\nRegión: " + PhotonNetwork.CloudRegion +
+            "\nCluster: " + PhotonNetwork.CurrentCluster +
+            "\nGameVersion: " + PhotonNetwork.GameVersion +
+            "\nAppVersion: " + PhotonNetwork.AppVersion +
+            "\nEstado: " + PhotonNetwork.NetworkClientState +
+            "\nConexión lista: " + PhotonNetwork.IsConnectedAndReady +
+            "\nEn sala: " + PhotonNetwork.InRoom +
+            "\nSala actual: " +
+                (PhotonNetwork.CurrentRoom != null
+                    ? PhotonNetwork.CurrentRoom.Name
+                    : "NINGUNA") +
+            "\n============================"
+        );
     }
 }
