@@ -32,7 +32,14 @@ public class PhotonMultijugador : MonoBehaviourPunCallbacks
     private void Start()
     {
         PhotonNetwork.AutomaticallySyncScene = true;
-        Debug.Log("Conectando a Photon...");
+
+        // Todos los jugadores utilizarán la misma región.
+        PhotonNetwork.PhotonServerSettings.AppSettings.FixedRegion = "us";
+
+        Debug.Log(
+            "[PHOTON] Conectando a región fija: us"
+        );
+
         PhotonNetwork.ConnectUsingSettings();
     }
 
