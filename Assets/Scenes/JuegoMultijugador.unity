@@ -60877,13 +60877,14 @@ GameObject:
   m_Component:
   - component: {fileID: 1656857474}
   - component: {fileID: 1656857475}
+  - component: {fileID: 1656857476}
   m_Layer: 0
   m_Name: AudioManager.
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1656857474
 Transform:
   m_ObjectHideFlags: 0
@@ -60906,7 +60907,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1656857473}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9e8587d89634d584fa72bc35bf60bb6d, type: 3}
   m_Name: 
@@ -60916,6 +60917,25 @@ MonoBehaviour:
   volumenMusica: {fileID: 1815304577}
   volumenSFX: {fileID: 1980853103}
   parametroGeneral: MasterVolume
+  parametroMusica: MusicVolume
+  parametroSFX: SFXVolume
+--- !u!114 &1656857476
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1656857473}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 574af8bce4cae5d4cb2ea004e1180f1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ConfiguracionVolumen
+  audioMixer: {fileID: 24100000, guid: a718e94c9582c57469b2e169e9335d0b, type: 2}
+  sliderMaster: {fileID: 559473544}
+  sliderMusica: {fileID: 1815304577}
+  sliderSFX: {fileID: 1980853103}
+  parametroMaster: MasterVolume
   parametroMusica: MusicVolume
   parametroSFX: SFXVolume
 --- !u!1001 &1658278362
