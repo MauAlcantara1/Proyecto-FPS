@@ -5794,7 +5794,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 687a02d23cd17024c8996e2e45616415, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CompraBotiquines
-  costo: 25
+  costo: 150
   cantidadBotiquines: 1
 --- !u!65 &177265660
 BoxCollider:
@@ -5959,7 +5959,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8845b56b980a5764db969904bfc3f0a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CompraMunicion
-  costo: 20
+  costo: 100
   cantidadMunicion: 30
 --- !u!65 &184130008
 BoxCollider:
@@ -21828,7 +21828,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 6.001251, y: -83}
+  m_AnchoredPosition: {x: 6.0012207, y: -83}
   m_SizeDelta: {x: 225, y: 41.92}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &748396349
@@ -24778,9 +24778,9 @@ MonoBehaviour:
   - {fileID: 2069033114}
   - {fileID: 81887230}
   - {fileID: 1149745384}
-  baseEnemigosPorWave: 10
-  incrementoPorRonda: 4
-  maxZombiesSimultaneos: 50
+  baseEnemigosPorWave: 20
+  incrementoPorRonda: 15
+  maxZombiesSimultaneos: 120
   spawnDelay: 0.5
   tiempoEntreWaves: 5
   vidaBaseZombie: 50
@@ -33244,7 +33244,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   "puntosPorDa\xF1o": 7
   textoPuntuacion: {fileID: 1732939558}
-  costo: 10
+  costo: 250
   panelCompra: {fileID: 466786263}
   armaController: {fileID: 0}
 --- !u!4 &1094270712

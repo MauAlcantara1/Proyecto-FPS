@@ -134,7 +134,6 @@ public class MunicionArma : MonoBehaviour
         ActualizarUI();
     }
 
-    // Agrega munición comprada al inventario de esta arma.
     public bool AgregarMunicionAlmacenada(int cantidad)
     {
         if (!EsJugadorLocal())
@@ -196,5 +195,25 @@ public class MunicionArma : MonoBehaviour
 
         textoCargador = null;
         textoMunicion = null;
+    }
+
+    public void CancelarRecarga()
+    {
+        if (!EsJugadorLocal())
+            return;
+
+        if (!recargando)
+            return;
+
+        recargando = false;
+
+        Debug.Log(
+            "Recarga cancelada al cambiar de arma."
+        );
+    }
+
+    private void OnDisable()
+    {
+        recargando = false;
     }
 }

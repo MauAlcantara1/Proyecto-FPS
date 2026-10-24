@@ -43,11 +43,20 @@ public class CompraMunicion : MonoBehaviour
             return;
         }
 
-        // Buscar la única arma de fuego del comprador.
-        // IncludeInactive permite encontrarla
-        // aunque tenga equipado el machete.
-        MunicionArma armaJugador =
-            comprador.GetComponentInChildren<MunicionArma>(true);
+    armaController controladorArmas =
+        comprador.GetComponentInChildren<armaController>(true);
+
+    if (controladorArmas == null)
+    {
+        Debug.LogWarning(
+            "[COMPRA MUNICIÓN] No se encontró armaController."
+        );
+
+        return;
+    }
+
+    MunicionArma armaJugador =
+    controladorArmas.ObtenerMunicionArmaPrimaria();
 
         if (armaJugador == null)
         {

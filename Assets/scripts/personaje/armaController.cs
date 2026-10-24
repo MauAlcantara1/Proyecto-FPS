@@ -2,9 +2,15 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using Photon.Pun;
 using TMPro;
+using UnityEngine.UI;
 
 public class armaController : MonoBehaviour
 {
+
+    [Header("Imagen del arma primaria")]
+    private Image imagenArmaHUD;
+    private Sprite spritePistolaHUD;
+    private Sprite spriteFusilHUD;
     
     private Animator animatorActual;
     private CharacterController controller;
@@ -147,9 +153,11 @@ public class armaController : MonoBehaviour
         if (segundaArma != null)
             segundaArma.SetActive(!primariaActiva);
 
-        // Actualizar únicamente la interfaz local
+        // La selección cambia entre primaria y machete.
+        // La imagen corresponde siempre al arma primaria actual.
         ActualizarIndicadoresArmas();
         ActualizarIndicadorBotiquin();
+        ActualizarImagenArmaHUD();
     }
 
     private void ActualizarIndicadorBotiquin()
@@ -180,34 +188,25 @@ public class armaController : MonoBehaviour
         ActualizarMunicion();
     }
 
-private void ActualizarMunicion()
-{
-    // Guardar la referencia del arma anterior
-    MunicionArma municionAnterior = municionActual;
-
-    // Identificar el arma equipada
-    GameObject armaActual = primariaActiva
-        ? ObtenerArmaPrimaria()
-        : segundaArma;
-
-    // Obtener su componente de munición
-    municionActual = armaActual != null
-        ? armaActual.GetComponent<MunicionArma>()
-        : null;
-
-    if (!EsJugadorLocal())
-        return;
-
-    // Desconectar el HUD del arma anterior
-    if (municionAnterior != null &&
-        municionAnterior != municionActual)
+    private void ActualizarMunicion()
     {
-        municionAnterior.DesconectarInterfaz();
-    }
+        MunicionArma municionAnterior = municionActual;
 
-    // Conectar el HUD al arma equipada
-    ActualizarHUDMunicion();
-}
+        // Siempre mostramos la munición de la pistola/fusil/Uzi,
+        // incluso cuando se equipa el machete.
+        GameObject armaPrimaria = ObtenerArmaPrimaria();
+        municionActual = armaPrimaria != null
+            ? armaPrimaria.GetComponentInChildren<MunicionArma>(true)
+            : null;
+
+        if (!EsJugadorLocal())
+            return;
+
+        if (municionAnterior != null && municionAnterior != municionActual)
+            municionAnterior.DesconectarInterfaz();
+
+        ActualizarHUDMunicion();
+    }
 
     private Animator ObtenerAnimatorArmaPrimaria()
     {
@@ -236,6 +235,36 @@ private void ActualizarMunicion()
         }
     }
 
+    public MunicionArma ObtenerMunicionArmaPrimaria()
+    {
+        if (!EsJugadorLocal())
+            return null;
+
+        GameObject arma = ObtenerArmaPrimaria();
+
+        if (arma == null)
+        {
+            Debug.LogWarning(
+                "No se encontró el arma primaria seleccionada."
+            );
+
+            return null;
+        }
+
+        MunicionArma municion =
+            arma.GetComponentInChildren<MunicionArma>(true);
+
+        if (municion == null)
+        {
+            Debug.LogWarning(
+                "El arma " + arma.name +
+                " no tiene componente MunicionArma."
+            );
+        }
+
+        return municion;
+    }
+
     public void Cambio(InputAction.CallbackContext context)
     {
     if (!EsJugadorLocal() || EstaIncapacitado())
@@ -252,7 +281,7 @@ private void ActualizarMunicion()
     {
         if (!EsJugadorLocal() || EstaIncapacitado())
             return;
-        if (!context.performed)
+        if (!context.performed || !primariaActiva)
             return;
 
         if (municionActual == null)
@@ -300,9 +329,21 @@ private void ActualizarMunicion()
     {
         if (!EsJugadorLocal() || EstaIncapacitado())
             return;
-        primariaActiva = !primariaActiva;
+
+    
+        if (municionActual != null)
+        {
+            municionActual.CancelarRecarga();
+        }
+
+        if (animatorActual != null)
+        {
+            animatorActual.SetBool("Disparo", false);
+        }
 
         disparando = false;
+
+        primariaActiva = !primariaActiva;
 
         ActualizarArmaVisible();
         ActualizarAnimator();
@@ -312,6 +353,8 @@ private void ActualizarMunicion()
             animatorActual.Rebind();
             animatorActual.Update(0f);
         }
+
+        Debug.Log("Cambio de arma completado.");
     }
 
     public Animator ObtenerAnimatorActual()
@@ -404,5 +447,37 @@ private void ActualizarMunicion()
     {
         return saludJugador != null &&
             saludJugador.EstaIncapacitado();
+    }
+
+    public void AsignarImagenHUD(
+        Image imagen,
+        Sprite spritePistola,
+        Sprite spriteFusil)
+    {
+        if (!EsJugadorLocal())
+            return;
+
+        imagenArmaHUD = imagen;
+        spritePistolaHUD = spritePistola;
+        spriteFusilHUD = spriteFusil;
+
+        ActualizarImagenArmaHUD();
+    }
+
+    private void ActualizarImagenArmaHUD()
+    {
+        if (!EsJugadorLocal() || imagenArmaHUD == null)
+            return;
+
+        switch (armaActiva)
+        {
+            case TipoArma.pistola:
+                imagenArmaHUD.sprite = spritePistolaHUD;
+                break;
+
+            case TipoArma.fusil:
+                imagenArmaHUD.sprite = spriteFusilHUD;
+                break;
+        }
     }
 }

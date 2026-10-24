@@ -47,4 +47,16 @@ public class Destruible : MonoBehaviour
             Destroy(collision.gameObject);
         }
     }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Bala") && other.isTrigger)
+        {
+            TomarDaño(25);
+
+            Debug.Log(
+                "[DESTRUIBLE] Daño recibido por machete."
+            );
+        }
+    }
 }

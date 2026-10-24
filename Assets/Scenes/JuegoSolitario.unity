@@ -487,8 +487,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 95f202974ece5474994e5f5c8b910a0d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PantallaInicio
-  inputNombre: {fileID: 0}
-  textoRecord: {fileID: 0}
+  inputNombre: {fileID: 1851318042}
+  textoRecord: {fileID: 1516667480}
 --- !u!1 &153469200
 GameObject:
   m_ObjectHideFlags: 0

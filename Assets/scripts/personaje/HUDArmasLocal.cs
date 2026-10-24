@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 
 public class HUDArmasLocal : MonoBehaviour
@@ -14,31 +15,34 @@ public class HUDArmasLocal : MonoBehaviour
     [SerializeField] private TMP_Text textoCargador;
     [SerializeField] private TMP_Text textoMunicion;
 
+    [Header("Imagen del arma primaria")]
+    [SerializeField] private Image imagenArmaPrimaria;
+    [SerializeField] private Sprite spritePistola;
+    [SerializeField] private Sprite spriteFusil;
+
     public void Conectar(armaController armas)
     {
         if (armas == null)
         {
-            Debug.LogWarning(
-                "No se encontró armaController para conectar el HUD."
-            );
+            Debug.LogWarning("No se encontró armaController para conectar el HUD.");
             return;
         }
 
-        // Conectar indicadores de selección
         armas.AsignarInterfaz(
             UIseleccionadaUno,
             UIseleccionadaDos,
             UIseleccionadaBotiquin
         );
 
-        // Conectar textos de munición
         armas.AsignarInterfazMunicion(
             textoCargador,
             textoMunicion
         );
 
-        Debug.Log(
-            "HUD de armas y munición conectado al jugador local."
+        armas.AsignarImagenHUD(
+            imagenArmaPrimaria,
+            spritePistola,
+            spriteFusil
         );
     }
 }

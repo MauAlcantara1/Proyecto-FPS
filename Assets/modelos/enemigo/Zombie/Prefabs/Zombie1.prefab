@@ -1821,7 +1821,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.7, y: 1.7, z: 1.7}
+  m_LocalScale: {x: 1.6, y: 1.6, z: 1.6}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3095270377931777224}
@@ -1950,9 +1950,10 @@ MonoBehaviour:
   enemigo: {fileID: 6121435821403099409}
   animator: {fileID: 7389507112651452681}
   esZombiDeHorda: 0
+  intervaloBusqueda: 0.1
   vidaMaxima: 100
   puntuacion: {fileID: 0}
-  velocidad: 8
+  velocidad: 10
   rango: 20
   "da\xF1oAtaque": 10
   distanciaAtaque: 2
